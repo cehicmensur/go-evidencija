@@ -12,65 +12,42 @@ app.use(express.json());
 
 const JWT_SECRET = "super_tajni_kljuc";
 
-/* =========================
-   AUTH
-========================= */
-
 function provjeriToken(req, res, next) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
-    return res.status(401).json({
-      error: "Nema tokena.",
-    });
+    return res.status(401).json({ error: "Nema tokena." });
   }
 
   const token = authHeader.split(" ")[1];
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-
     req.korisnik = decoded;
-
     next();
   } catch {
-    return res.status(401).json({
-      error: "Neispravan token.",
-    });
+    return res.status(401).json({ error: "Neispravan token." });
   }
 }
 
 function samoAdmin(req, res, next) {
   if (req.korisnik.uloga !== "admin") {
-    return res.status(403).json({
-      error: "Samo admin ima pristup.",
-    });
+    return res.status(403).json({ error: "Samo admin ima pristup." });
   }
 
   next();
 }
 
-/* =========================
-   POMOĆNE FUNKCIJE
-========================= */
-
 function izracunajGodisnji(datum) {
   const danas = new Date();
   const pocetak = new Date(datum);
 
-  let godine =
-    danas.getFullYear() - pocetak.getFullYear();
+  let godine = danas.getFullYear() - pocetak.getFullYear();
 
-  const mjesecRazlika =
-    danas.getMonth() - pocetak.getMonth();
+  const mjesecRazlika = danas.getMonth() - pocetak.getMonth();
+  const danRazlika = danas.getDate() - pocetak.getDate();
 
-  const danRazlika =
-    danas.getDate() - pocetak.getDate();
-
-  if (
-    mjesecRazlika < 0 ||
-    (mjesecRazlika === 0 && danRazlika < 0)
-  ) {
+  if (mjesecRazlika < 0 || (mjesecRazlika === 0 && danRazlika < 0)) {
     godine--;
   }
 
@@ -85,79 +62,84 @@ function brojDana(od, doDatuma) {
   const start = new Date(od);
   const end = new Date(doDatuma);
 
-  return (
-    Math.ceil(
-      (end - start) / (1000 * 60 * 60 * 24)
-    ) + 1
-  );
+  return Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
 }
-
-/* =========================
-   TEST
-========================= */
 
 app.get("/", (req, res) => {
   res.send("Backend radi!");
 });
 
-/* =========================
-   REGISTER
-========================= */
-
+/* JAVNA REGISTRACIJA — SAMO ZAPOSLENIK */
 app.post("/register", async (req, res) => {
   try {
-    const {
-      ime,
-      email,
-      lozinka,
-      uloga,
-      zaposlenikId,
-    } = req.body;
+    const { ime, email, lozinka, zaposlenikId } = req.body;
 
     const postoji = await prisma.korisnik.findUnique({
       where: { email },
     });
 
     if (postoji) {
-      return res.status(400).json({
-        error: "Korisnik već postoji",
-      });
+      return res.status(400).json({ error: "Korisnik već postoji" });
     }
 
-    const hashovanaLozinka = await bcrypt.hash(
-      lozinka,
-      10
-    );
+    const hashovanaLozinka = await bcrypt.hash(lozinka, 10);
 
     const korisnik = await prisma.korisnik.create({
       data: {
         ime,
         email,
         lozinka: hashovanaLozinka,
-        uloga: uloga || "zaposlenik",
-        zaposlenikId: zaposlenikId
-          ? Number(zaposlenikId)
-          : null,
+        uloga: "zaposlenik",
+        zaposlenikId: zaposlenikId ? Number(zaposlenikId) : null,
       },
     });
 
     res.json({
-      message: "Korisnik registrovan",
+      message: "Zaposlenik registrovan",
       korisnik,
     });
   } catch (error) {
     console.error(error);
-
-    res.status(500).json({
-      error: "Greška kod registracije",
-    });
+    res.status(500).json({ error: "Greška kod registracije" });
   }
 });
 
-/* =========================
-   LOGIN
-========================= */
+/* ADMIN KREIRA KORISNIKA ILI ADMINA */
+app.post("/admin/korisnici", provjeriToken, samoAdmin, async (req, res) => {
+  try {
+    const { ime, email, lozinka, uloga, zaposlenikId } = req.body;
 
+    const postoji = await prisma.korisnik.findUnique({
+      where: { email },
+    });
+
+    if (postoji) {
+      return res.status(400).json({ error: "Korisnik već postoji" });
+    }
+
+    const hashovanaLozinka = await bcrypt.hash(lozinka, 10);
+
+    const korisnik = await prisma.korisnik.create({
+      data: {
+        ime,
+        email,
+        lozinka: hashovanaLozinka,
+        uloga: uloga === "admin" ? "admin" : "zaposlenik",
+        zaposlenikId: zaposlenikId ? Number(zaposlenikId) : null,
+      },
+    });
+
+    res.json({
+      message: "Korisnik kreiran",
+      korisnik,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Greška kod kreiranja korisnika" });
+  }
+});
+
+/* LOGIN */
 app.post("/login", async (req, res) => {
   try {
     const { email, lozinka } = req.body;
@@ -167,20 +149,13 @@ app.post("/login", async (req, res) => {
     });
 
     if (!korisnik) {
-      return res.status(400).json({
-        error: "Korisnik ne postoji",
-      });
+      return res.status(400).json({ error: "Korisnik ne postoji" });
     }
 
-    const validnaLozinka = await bcrypt.compare(
-      lozinka,
-      korisnik.lozinka
-    );
+    const validnaLozinka = await bcrypt.compare(lozinka, korisnik.lozinka);
 
     if (!validnaLozinka) {
-      return res.status(400).json({
-        error: "Pogrešna lozinka",
-      });
+      return res.status(400).json({ error: "Pogrešna lozinka" });
     }
 
     const token = jwt.sign(
@@ -191,9 +166,7 @@ app.post("/login", async (req, res) => {
         zaposlenikId: korisnik.zaposlenikId,
       },
       JWT_SECRET,
-      {
-        expiresIn: "7d",
-      }
+      { expiresIn: "7d" }
     );
 
     res.json({
@@ -202,337 +175,189 @@ app.post("/login", async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-
-    res.status(500).json({
-      error: "Greška kod logina",
-    });
+    res.status(500).json({ error: "Greška kod logina" });
   }
 });
 
-/* =========================
-   ZAPOSLENICI
-========================= */
+/* ZAPOSLENICI */
+app.get("/zaposlenici", provjeriToken, samoAdmin, async (req, res) => {
+  try {
+    const zaposlenici = await prisma.zaposlenik.findMany({
+      include: { odmori: true },
+      orderBy: { id: "asc" },
+    });
 
-app.get(
-  "/zaposlenici",
-  provjeriToken,
-  samoAdmin,
-  async (req, res) => {
-    try {
-      const zaposlenici =
-        await prisma.zaposlenik.findMany({
-          include: {
-            odmori: true,
-          },
-          orderBy: {
-            id: "asc",
-          },
-        });
+    const rezultat = zaposlenici.map((z) => {
+      const iskoristeno = z.odmori
+        .filter(
+          (o) =>
+            o.status === "odobreno" &&
+            o.vrsta === "Godišnji odmor"
+        )
+        .reduce((sum, o) => sum + brojDana(o.od, o.do), 0);
 
-      const rezultat = zaposlenici.map((z) => {
-        const iskoristeno = z.odmori
-          .filter(
-            (o) =>
-              o.status === "odobreno" &&
-              o.vrsta === "Godišnji odmor"
-          )
-          .reduce(
-            (sum, o) =>
-              sum + brojDana(o.od, o.do),
-            0
-          );
+      return {
+        id: z.id,
+        ime: z.ime,
+        pozicija: z.pozicija,
+        godisnji: z.godisnji,
+        iskoristeno,
+        preostalo: z.godisnji - iskoristeno,
+      };
+    });
 
-        return {
-          id: z.id,
-          ime: z.ime,
-          pozicija: z.pozicija,
-          godisnji: z.godisnji,
-          iskoristeno,
-          preostalo:
-            z.godisnji - iskoristeno,
-        };
-      });
-
-      res.json(rezultat);
-    } catch (error) {
-      console.error(error);
-
-      res.status(500).json({
-        error:
-          "Greška kod učitavanja zaposlenika",
-      });
-    }
+    res.json(rezultat);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Greška kod učitavanja zaposlenika" });
   }
-);
+});
 
-app.post(
-  "/zaposlenici",
-  provjeriToken,
-  samoAdmin,
-  async (req, res) => {
-    try {
-      const {
-        ime,
-        pozicija,
-        datumPocetka,
-      } = req.body;
+app.post("/zaposlenici", provjeriToken, samoAdmin, async (req, res) => {
+  try {
+    const { ime, pozicija, datumPocetka } = req.body;
 
-      const godisnji =
-        izracunajGodisnji(datumPocetka);
+    const godisnji = izracunajGodisnji(datumPocetka);
 
-      const novi =
-        await prisma.zaposlenik.create({
-          data: {
-            ime,
-            pozicija,
-            godisnji,
-          },
-        });
-
-      res.json(novi);
-    } catch (error) {
-      console.error(error);
-
-      res.status(500).json({
-        error:
-          "Greška kod dodavanja zaposlenika",
-      });
-    }
-  }
-);
-
-app.put(
-  "/zaposlenici/:id",
-  provjeriToken,
-  samoAdmin,
-  async (req, res) => {
-    try {
-      const { id } = req.params;
-
-      const {
+    const novi = await prisma.zaposlenik.create({
+      data: {
         ime,
         pozicija,
         godisnji,
-      } = req.body;
+      },
+    });
 
-      const update =
-        await prisma.zaposlenik.update({
-          where: {
-            id: Number(id),
-          },
-          data: {
-            ime,
-            pozicija,
-            godisnji: Number(godisnji),
-          },
-        });
+    res.json(novi);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Greška kod dodavanja zaposlenika" });
+  }
+});
 
-      res.json(update);
-    } catch (error) {
-      console.error(error);
+app.put("/zaposlenici/:id", provjeriToken, samoAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { ime, pozicija, godisnji } = req.body;
 
-      res.status(500).json({
-        error:
-          "Greška kod izmjene zaposlenika",
+    const update = await prisma.zaposlenik.update({
+      where: { id: Number(id) },
+      data: {
+        ime,
+        pozicija,
+        godisnji: Number(godisnji),
+      },
+    });
+
+    res.json(update);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Greška kod izmjene zaposlenika" });
+  }
+});
+
+app.delete("/zaposlenici/:id", provjeriToken, samoAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await prisma.zaposlenik.delete({
+      where: { id: Number(id) },
+    });
+
+    res.json({ message: "Zaposlenik obrisan" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Greška kod brisanja zaposlenika" });
+  }
+});
+
+/* ODSUSTVA */
+app.get("/godisnji", provjeriToken, async (req, res) => {
+  try {
+    const gdje =
+      req.korisnik.uloga === "admin"
+        ? {}
+        : { zaposlenikId: Number(req.korisnik.zaposlenikId) };
+
+    const zahtjevi = await prisma.godisnjiOdmor.findMany({
+      where: gdje,
+      include: { zaposlenik: true },
+      orderBy: { id: "desc" },
+    });
+
+    res.json(zahtjevi);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Greška kod učitavanja odsustava" });
+  }
+});
+
+app.post("/godisnji", provjeriToken, async (req, res) => {
+  try {
+    const { zaposlenikId, vrsta, od, do: doDatuma, napomena } = req.body;
+
+    const finalZaposlenikId =
+      req.korisnik.uloga === "admin"
+        ? Number(zaposlenikId)
+        : Number(req.korisnik.zaposlenikId);
+
+    if (!finalZaposlenikId) {
+      return res.status(400).json({
+        error: "Korisnik nije povezan sa zaposlenikom.",
       });
     }
+
+    const finalVrsta = vrsta || "Godišnji odmor";
+
+    const novi = await prisma.godisnjiOdmor.create({
+      data: {
+        zaposlenikId: finalZaposlenikId,
+        vrsta: finalVrsta,
+        od: new Date(od),
+        do: new Date(doDatuma),
+        status: "na čekanju",
+        napomena: napomena || null,
+        odbijaSeOdGodisnjeg: finalVrsta === "Godišnji odmor",
+      },
+    });
+
+    res.json(novi);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Greška kod dodavanja odsustva" });
   }
-);
+});
 
-app.delete(
-  "/zaposlenici/:id",
-  provjeriToken,
-  samoAdmin,
-  async (req, res) => {
-    try {
-      const { id } = req.params;
+app.put("/godisnji/:id", provjeriToken, samoAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
 
-      await prisma.zaposlenik.delete({
-        where: {
-          id: Number(id),
-        },
-      });
+    const zahtjev = await prisma.godisnjiOdmor.update({
+      where: { id: Number(id) },
+      data: { status },
+    });
 
-      res.json({
-        message: "Zaposlenik obrisan",
-      });
-    } catch (error) {
-      console.error(error);
-
-      res.status(500).json({
-        error:
-          "Greška kod brisanja zaposlenika",
-      });
-    }
+    res.json(zahtjev);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Greška kod izmjene statusa" });
   }
-);
+});
 
-/* =========================
-   ODSUSTVA
-========================= */
+app.delete("/godisnji/:id", provjeriToken, async (req, res) => {
+  try {
+    const { id } = req.params;
 
-app.get(
-  "/godisnji",
-  provjeriToken,
-  async (req, res) => {
-    try {
-      const gdje =
-        req.korisnik.uloga === "admin"
-          ? {}
-          : {
-              zaposlenikId: Number(
-                req.korisnik.zaposlenikId
-              ),
-            };
+    await prisma.godisnjiOdmor.delete({
+      where: { id: Number(id) },
+    });
 
-      const zahtjevi =
-        await prisma.godisnjiOdmor.findMany({
-          where: gdje,
-          include: {
-            zaposlenik: true,
-          },
-          orderBy: {
-            id: "desc",
-          },
-        });
-
-      res.json(zahtjevi);
-    } catch (error) {
-      console.error(error);
-
-      res.status(500).json({
-        error:
-          "Greška kod učitavanja odsustava",
-      });
-    }
+    res.json({ message: "Odsustvo obrisano" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Greška kod brisanja odsustva" });
   }
-);
-
-app.post(
-  "/godisnji",
-  provjeriToken,
-  async (req, res) => {
-    try {
-      const {
-        zaposlenikId,
-        vrsta,
-        od,
-        do: doDatuma,
-        napomena,
-      } = req.body;
-
-      const finalZaposlenikId =
-        req.korisnik.uloga === "admin"
-          ? Number(zaposlenikId)
-          : Number(
-              req.korisnik.zaposlenikId
-            );
-
-      if (!finalZaposlenikId) {
-        return res.status(400).json({
-          error:
-            "Korisnik nije povezan sa zaposlenikom.",
-        });
-      }
-
-      const finalVrsta =
-        vrsta || "Godišnji odmor";
-
-      const novi =
-        await prisma.godisnjiOdmor.create({
-          data: {
-            zaposlenikId:
-              finalZaposlenikId,
-            vrsta: finalVrsta,
-            od: new Date(od),
-            do: new Date(doDatuma),
-            status: "na čekanju",
-            napomena:
-              napomena || null,
-            odbijaSeOdGodisnjeg:
-              finalVrsta ===
-              "Godišnji odmor",
-          },
-        });
-
-      res.json(novi);
-    } catch (error) {
-      console.error(error);
-
-      res.status(500).json({
-        error:
-          "Greška kod dodavanja odsustva",
-      });
-    }
-  }
-);
-
-app.put(
-  "/godisnji/:id",
-  provjeriToken,
-  samoAdmin,
-  async (req, res) => {
-    try {
-      const { id } = req.params;
-
-      const { status } = req.body;
-
-      const zahtjev =
-        await prisma.godisnjiOdmor.update({
-          where: {
-            id: Number(id),
-          },
-          data: {
-            status,
-          },
-        });
-
-      res.json(zahtjev);
-    } catch (error) {
-      console.error(error);
-
-      res.status(500).json({
-        error:
-          "Greška kod izmjene statusa",
-      });
-    }
-  }
-);
-
-/* =========================
-   BRISANJE ODSUSTVA
-========================= */
-
-app.delete(
-  "/godisnji/:id",
-  provjeriToken,
-  async (req, res) => {
-    try {
-      const { id } = req.params;
-
-      await prisma.godisnjiOdmor.delete({
-        where: {
-          id: Number(id),
-        },
-      });
-
-      res.json({
-        message: "Odsustvo obrisano",
-      });
-    } catch (error) {
-      console.error(error);
-
-      res.status(500).json({
-        error:
-          "Greška kod brisanja odsustva",
-      });
-    }
-  }
-);
-
-/* =========================
-   START SERVER
-========================= */
+});
 
 const PORT = process.env.PORT || 3000;
 
