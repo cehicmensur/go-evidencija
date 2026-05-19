@@ -7,7 +7,7 @@ function Login() {
   const [zaposlenikId, setZaposlenikId] = useState("");
 
   const login = () => {
-    fetch("http://localhost:3000/login", {
+    fetch("https://go-evidencija-backend.onrender.com/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -29,7 +29,7 @@ function Login() {
   };
 
   const registerAdmin = () => {
-    fetch("http://localhost:3000/register", {
+    fetch("https://go-evidencija-backend.onrender.com/register", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -53,7 +53,7 @@ function Login() {
   };
 
   const registerZaposlenik = () => {
-    fetch("http://localhost:3000/register", {
+    fetch("https://go-evidencija-backend.onrender.com/register", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

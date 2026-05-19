@@ -11,7 +11,7 @@ function Zaposlenici() {
   const token = localStorage.getItem("token");
 
   const ucitaj = () => {
-    fetch("http://localhost:3000/zaposlenici", {
+    fetch("https://go-evidencija-backend.onrender.com/zaposlenici", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -47,7 +47,7 @@ function Zaposlenici() {
       return;
     }
 
-    fetch("http://localhost:3000/zaposlenici", {
+    fetch("https://go-evidencija-backend.onrender.com/zaposlenici", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -67,7 +67,7 @@ function Zaposlenici() {
   };
 
   const obrisi = (id) => {
-    fetch(`http://localhost:3000/zaposlenici/${id}`, {
+    fetch(`https://go-evidencija-backend.onrender.com/zaposlenici/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -76,7 +76,7 @@ function Zaposlenici() {
   };
 
   const sacuvaj = (z) => {
-    fetch(`http://localhost:3000/zaposlenici/${z.id}`, {
+    fetch(`https://go-evidencija-backend.onrender.com/zaposlenici/${z.id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

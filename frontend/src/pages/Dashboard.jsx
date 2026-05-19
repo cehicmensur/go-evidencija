@@ -9,7 +9,7 @@ function Dashboard() {
   const korisnik = JSON.parse(localStorage.getItem("korisnik"));
 
   useEffect(() => {
-    fetch("http://localhost:3000/godisnji", {
+    fetch("https://go-evidencija-backend.onrender.com/godisnji", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -25,7 +25,7 @@ function Dashboard() {
       });
 
     if (korisnik?.uloga === "admin") {
-      fetch("http://localhost:3000/zaposlenici", {
+      fetch("https://go-evidencija-backend.onrender.com/zaposlenici", {
         headers: {
           Authorization: `Bearer ${token}`,
         },

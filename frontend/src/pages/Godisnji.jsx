@@ -45,7 +45,7 @@ function Godisnji() {
   const korisnik = JSON.parse(localStorage.getItem("korisnik"));
 
   const ucitajZahtjeve = () => {
-    fetch("http://localhost:3000/godisnji", {
+    fetch("https://go-evidencija-backend.onrender.com/godisnji", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -65,7 +65,7 @@ function Godisnji() {
   const ucitajZaposlenike = () => {
     if (korisnik?.uloga !== "admin") return;
 
-    fetch("http://localhost:3000/zaposlenici", {
+    fetch("https://go-evidencija-backend.onrender.com/zaposlenici", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -94,7 +94,7 @@ function Godisnji() {
       return;
     }
 
-    fetch("http://localhost:3000/godisnji", {
+    fetch("https://go-evidencija-backend.onrender.com/godisnji", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -119,7 +119,7 @@ function Godisnji() {
   };
 
   const promijeniStatus = (id, status) => {
-    fetch(`http://localhost:3000/godisnji/${id}`, {
+    fetch(`https://go-evidencija-backend.onrender.com/godisnji/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -132,7 +132,7 @@ function Godisnji() {
   const obrisiOdsustvo = (id) => {
     if (!confirm("Da li sigurno želiš obrisati ovo odsustvo?")) return;
 
-    fetch(`http://localhost:3000/godisnji/${id}`, {
+    fetch(`https://go-evidencija-backend.onrender.com/godisnji/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,

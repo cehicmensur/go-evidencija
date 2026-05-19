@@ -17,7 +17,7 @@ function Kalendar() {
   const token = localStorage.getItem("token");
 
   useEffect(() => {
-    fetch("http://localhost:3000/godisnji", {
+    fetch("https://go-evidencija-backend.onrender.com/godisnji", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
