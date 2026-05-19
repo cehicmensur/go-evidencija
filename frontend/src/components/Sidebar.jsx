@@ -26,7 +26,11 @@ function Sidebar() {
               Zaposlenici
             </Link>
           )}
-
+{korisnik?.uloga === "admin" && (
+  <Link to="/korisnici" className="hover:text-slate-300">
+    Korisnici
+  </Link>
+)}
           <Link to="/godisnji" className="hover:text-slate-300">
             Odsustva
           </Link>

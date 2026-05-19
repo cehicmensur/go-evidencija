@@ -1,3 +1,4 @@
+import Korisnici from "./pages/Korisnici";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Sidebar from "./components/Sidebar";
@@ -34,6 +35,10 @@ function App() {
             <Route
   path="/kalendar"
   element={<Kalendar />}
+/>
+<Route
+  path="/korisnici"
+  element={<Korisnici />}
 />
           </Routes>
         </div>
