@@ -1,18 +1,19 @@
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
+import Dashboard from "./pages/Dashboard";
+import Login from "./pages/Login";
+import Zaposlenici from "./pages/Zaposlenici";
+import Godisnji from "./pages/Godisnji";
 import Korisnici from "./pages/Korisnici";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import DokumentOdsustva from "./pages/DokumentOdsustva";
 
 import Sidebar from "./components/Sidebar";
 
-import Dashboard from "./pages/Dashboard";
-import Zaposlenici from "./pages/Zaposlenici";
-import Godisnji from "./pages/Godisnji";
-import Login from "./pages/Login";
-import Kalendar from "./pages/Kalendar";
-
 function App() {
-  const korisnik = localStorage.getItem("korisnik");
+  const token = localStorage.getItem("token");
+  const korisnik = JSON.parse(localStorage.getItem("korisnik"));
 
-  if (!korisnik) {
+  if (!token) {
     return <Login />;
   }
 
@@ -21,27 +22,42 @@ function App() {
       <div className="flex min-h-screen bg-slate-100">
         <Sidebar />
 
-        <div className="flex-1 p-8">
+        <main className="flex-1 p-8">
           <Routes>
             <Route path="/" element={<Dashboard />} />
+
             <Route
               path="/zaposlenici"
-              element={<Zaposlenici />}
+              element={
+                korisnik?.uloga === "admin" ? (
+                  <Zaposlenici />
+                ) : (
+                  <Navigate to="/" />
+                )
+              }
             />
+
             <Route
-              path="/godisnji"
-              element={<Godisnji />}
+              path="/korisnici"
+              element={
+                korisnik?.uloga === "admin" ? (
+                  <Korisnici />
+                ) : (
+                  <Navigate to="/" />
+                )
+              }
             />
+
+            <Route path="/godisnji" element={<Godisnji />} />
+
             <Route
-  path="/kalendar"
-  element={<Kalendar />}
-/>
-<Route
-  path="/korisnici"
-  element={<Korisnici />}
-/>
+              path="/dokument-odsustva"
+              element={<DokumentOdsustva />}
+            />
+
+            <Route path="*" element={<Navigate to="/" />} />
           </Routes>
-        </div>
+        </main>
       </div>
     </BrowserRouter>
   );

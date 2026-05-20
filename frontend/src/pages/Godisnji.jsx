@@ -44,8 +44,10 @@ function Godisnji() {
   const token = localStorage.getItem("token");
   const korisnik = JSON.parse(localStorage.getItem("korisnik"));
 
+  const API_URL = "https://go-evidencija-backend.onrender.com";
+
   const ucitajZahtjeve = () => {
-    fetch("https://go-evidencija-backend.onrender.com/godisnji", {
+    fetch(`${API_URL}/godisnji`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -65,7 +67,7 @@ function Godisnji() {
   const ucitajZaposlenike = () => {
     if (korisnik?.uloga !== "admin") return;
 
-    fetch("https://go-evidencija-backend.onrender.com/zaposlenici", {
+    fetch(`${API_URL}/zaposlenici`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -94,7 +96,7 @@ function Godisnji() {
       return;
     }
 
-    fetch("https://go-evidencija-backend.onrender.com/godisnji", {
+    fetch(`${API_URL}/godisnji`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -119,7 +121,7 @@ function Godisnji() {
   };
 
   const promijeniStatus = (id, status) => {
-    fetch(`https://go-evidencija-backend.onrender.com/godisnji/${id}`, {
+    fetch(`${API_URL}/godisnji/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -132,12 +134,23 @@ function Godisnji() {
   const obrisiOdsustvo = (id) => {
     if (!confirm("Da li sigurno želiš obrisati ovo odsustvo?")) return;
 
-    fetch(`https://go-evidencija-backend.onrender.com/godisnji/${id}`, {
+    fetch(`${API_URL}/godisnji/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
       },
     }).then(() => ucitajZahtjeve());
+  };
+
+  const otvoriDokument = (odsustvo, tip) => {
+    localStorage.setItem(
+      "dokumentOdsustva",
+      JSON.stringify(odsustvo)
+    );
+
+    localStorage.setItem("tipDokumenta", tip);
+
+    window.open("/dokument-odsustva", "_blank");
   };
 
   const filtriraniZahtjevi = useMemo(() => {
@@ -348,7 +361,7 @@ function Godisnji() {
                 </td>
 
                 {korisnik?.uloga === "admin" && (
-                  <td className="p-3 flex gap-2">
+                  <td className="p-3 flex flex-wrap gap-2">
                     <button
                       onClick={() =>
                         promijeniStatus(z.id, "odobreno")
@@ -367,9 +380,31 @@ function Godisnji() {
                       Odbij
                     </button>
 
+                    {z.status === "odobreno" && (
+                      <>
+                        <button
+                          onClick={() =>
+                            otvoriDokument(z, "odobrenje")
+                          }
+                          className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg"
+                        >
+                          Odobrenje
+                        </button>
+
+                        <button
+                          onClick={() =>
+                            otvoriDokument(z, "rjesenje")
+                          }
+                          className="bg-indigo-700 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg"
+                        >
+                          Rješenje
+                        </button>
+                      </>
+                    )}
+
                     <button
                       onClick={() => obrisiOdsustvo(z.id)}
-                      className="bg-slate-600 hover:bg-slate-500 text-white px-4 py-2 rounded-lg"
+                      className="bg-slate-500 hover:bg-slate-400 text-white px-4 py-2 rounded-lg"
                     >
                       Obriši
                     </button>
