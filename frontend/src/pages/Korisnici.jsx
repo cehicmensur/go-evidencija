@@ -3,11 +3,13 @@ import { useEffect, useState } from "react";
 function Korisnici() {
   const [korisnici, setKorisnici] = useState([]);
   const [greska, setGreska] = useState("");
+  const [lozinke, setLozinke] = useState({});
 
   const token = localStorage.getItem("token");
+  const API_URL = "https://go-evidencija-backend.onrender.com";
 
   const ucitajKorisnike = () => {
-    fetch("https://go-evidencija-backend.onrender.com/admin/korisnici", {
+    fetch(`${API_URL}/admin/korisnici`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -29,7 +31,7 @@ function Korisnici() {
   }, []);
 
   const odobriKorisnika = (id) => {
-    fetch(`https://go-evidencija-backend.onrender.com/admin/korisnici/${id}`, {
+    fetch(`${API_URL}/admin/korisnici/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -41,8 +43,8 @@ function Korisnici() {
     }).then(() => ucitajKorisnike());
   };
 
-  const odbijKorisnika = (id) => {
-    fetch(`https://go-evidencija-backend.onrender.com/admin/korisnici/${id}`, {
+  const vratiNaCekanje = (id) => {
+    fetch(`${API_URL}/admin/korisnici/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -57,7 +59,7 @@ function Korisnici() {
   const obrisiKorisnika = (id) => {
     if (!confirm("Da li sigurno želiš obrisati korisnika?")) return;
 
-    fetch(`https://go-evidencija-backend.onrender.com/admin/korisnici/${id}`, {
+    fetch(`${API_URL}/admin/korisnici/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -66,7 +68,7 @@ function Korisnici() {
   };
 
   const promijeniUlogu = (id, uloga) => {
-    fetch(`https://go-evidencija-backend.onrender.com/admin/korisnici/${id}`, {
+    fetch(`${API_URL}/admin/korisnici/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -78,6 +80,40 @@ function Korisnici() {
     }).then(() => ucitajKorisnike());
   };
 
+  const resetLozinke = (id) => {
+    const novaLozinka = lozinke[id];
+
+    if (!novaLozinka || novaLozinka.length < 6) {
+      alert("Nova lozinka mora imati najmanje 6 karaktera.");
+      return;
+    }
+
+    fetch(`${API_URL}/admin/reset-lozinka/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        novaLozinka,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) {
+          alert(data.error);
+          return;
+        }
+
+        alert(data.message || "Lozinka je resetovana.");
+
+        setLozinke((prev) => ({
+          ...prev,
+          [id]: "",
+        }));
+      });
+  };
+
   return (
     <div>
       <h1 className="text-4xl font-bold mb-2">
@@ -85,7 +121,7 @@ function Korisnici() {
       </h1>
 
       <p className="text-slate-500 mb-8">
-        Pregled i odobravanje korisničkih naloga
+        Pregled, odobravanje i administracija korisničkih naloga
       </p>
 
       {greska && (
@@ -104,6 +140,7 @@ function Korisnici() {
               <th className="p-4 text-left">Uloga</th>
               <th className="p-4 text-left">Zaposlenik</th>
               <th className="p-4 text-left">Status</th>
+              <th className="p-4 text-left">Nova lozinka</th>
               <th className="p-4 text-left">Akcija</th>
             </tr>
           </thead>
@@ -157,7 +194,29 @@ function Korisnici() {
                   )}
                 </td>
 
-                <td className="p-3 flex gap-2">
+                <td className="p-3">
+                  <input
+                    type="password"
+                    className="border rounded-lg px-3 py-2 w-40"
+                    placeholder="Nova lozinka"
+                    value={lozinke[k.id] || ""}
+                    onChange={(e) =>
+                      setLozinke((prev) => ({
+                        ...prev,
+                        [k.id]: e.target.value,
+                      }))
+                    }
+                  />
+
+                  <button
+                    onClick={() => resetLozinke(k.id)}
+                    className="mt-2 bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg"
+                  >
+                    Reset
+                  </button>
+                </td>
+
+                <td className="p-3 flex flex-wrap gap-2">
                   {!k.odobren && (
                     <button
                       onClick={() => odobriKorisnika(k.id)}
@@ -169,7 +228,7 @@ function Korisnici() {
 
                   {k.odobren && (
                     <button
-                      onClick={() => odbijKorisnika(k.id)}
+                      onClick={() => vratiNaCekanje(k.id)}
                       className="bg-yellow-600 hover:bg-yellow-500 text-white px-4 py-2 rounded-lg"
                     >
                       Vrati na čekanje
