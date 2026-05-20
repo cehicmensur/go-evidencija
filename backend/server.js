@@ -12,17 +12,11 @@ app.use(express.json());
 
 const JWT_SECRET = "super_tajni_kljuc";
 
-/* =========================
-   AUTH
-========================= */
-
 function provjeriToken(req, res, next) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
-    return res.status(401).json({
-      error: "Nema tokena.",
-    });
+    return res.status(401).json({ error: "Nema tokena." });
   }
 
   const token = authHeader.split(" ")[1];
@@ -32,25 +26,17 @@ function provjeriToken(req, res, next) {
     req.korisnik = decoded;
     next();
   } catch {
-    return res.status(401).json({
-      error: "Neispravan token.",
-    });
+    return res.status(401).json({ error: "Neispravan token." });
   }
 }
 
 function samoAdmin(req, res, next) {
   if (req.korisnik.uloga !== "admin") {
-    return res.status(403).json({
-      error: "Samo admin ima pristup.",
-    });
+    return res.status(403).json({ error: "Samo admin ima pristup." });
   }
 
   next();
 }
-
-/* =========================
-   POMOĆNE FUNKCIJE
-========================= */
 
 function izracunajGodisnji(datum) {
   const danas = new Date();
@@ -79,19 +65,11 @@ function brojDana(od, doDatuma) {
   return Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
 }
 
-/* =========================
-   TEST
-========================= */
-
 app.get("/", (req, res) => {
   res.send("Backend radi!");
 });
 
-/* =========================
-   JAVNA REGISTRACIJA
-   novi korisnik ide NA ČEKANJE
-========================= */
-
+/* JAVNA REGISTRACIJA */
 app.post("/register", async (req, res) => {
   try {
     const { ime, email, lozinka, zaposlenikId } = req.body;
@@ -101,9 +79,7 @@ app.post("/register", async (req, res) => {
     });
 
     if (postoji) {
-      return res.status(400).json({
-        error: "Korisnik već postoji",
-      });
+      return res.status(400).json({ error: "Korisnik već postoji" });
     }
 
     const hashovanaLozinka = await bcrypt.hash(lozinka, 10);
@@ -125,16 +101,11 @@ app.post("/register", async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({
-      error: "Greška kod registracije",
-    });
+    res.status(500).json({ error: "Greška kod registracije" });
   }
 });
 
-/* =========================
-   LOGIN
-========================= */
-
+/* LOGIN */
 app.post("/login", async (req, res) => {
   try {
     const { email, lozinka } = req.body;
@@ -144,17 +115,13 @@ app.post("/login", async (req, res) => {
     });
 
     if (!korisnik) {
-      return res.status(400).json({
-        error: "Korisnik ne postoji",
-      });
+      return res.status(400).json({ error: "Korisnik ne postoji" });
     }
 
     const validnaLozinka = await bcrypt.compare(lozinka, korisnik.lozinka);
 
     if (!validnaLozinka) {
-      return res.status(400).json({
-        error: "Pogrešna lozinka",
-      });
+      return res.status(400).json({ error: "Pogrešna lozinka" });
     }
 
     if (!korisnik.odobren) {
@@ -171,9 +138,7 @@ app.post("/login", async (req, res) => {
         zaposlenikId: korisnik.zaposlenikId,
       },
       JWT_SECRET,
-      {
-        expiresIn: "7d",
-      }
+      { expiresIn: "7d" }
     );
 
     res.json({
@@ -182,16 +147,11 @@ app.post("/login", async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({
-      error: "Greška kod logina",
-    });
+    res.status(500).json({ error: "Greška kod logina" });
   }
 });
 
-/* =========================
-   KORISNICI — ADMIN
-========================= */
-
+/* KORISNICI — ADMIN */
 app.get("/admin/korisnici", provjeriToken, samoAdmin, async (req, res) => {
   try {
     const korisnici = await prisma.korisnik.findMany({
@@ -204,9 +164,7 @@ app.get("/admin/korisnici", provjeriToken, samoAdmin, async (req, res) => {
     res.json(korisnici);
   } catch (error) {
     console.error(error);
-    res.status(500).json({
-      error: "Greška kod učitavanja korisnika",
-    });
+    res.status(500).json({ error: "Greška kod učitavanja korisnika" });
   }
 });
 
@@ -219,9 +177,7 @@ app.post("/admin/korisnici", provjeriToken, samoAdmin, async (req, res) => {
     });
 
     if (postoji) {
-      return res.status(400).json({
-        error: "Korisnik već postoji",
-      });
+      return res.status(400).json({ error: "Korisnik već postoji" });
     }
 
     const hashovanaLozinka = await bcrypt.hash(lozinka, 10);
@@ -243,9 +199,7 @@ app.post("/admin/korisnici", provjeriToken, samoAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({
-      error: "Greška kod kreiranja korisnika",
-    });
+    res.status(500).json({ error: "Greška kod kreiranja korisnika" });
   }
 });
 
@@ -268,11 +222,46 @@ app.put("/admin/korisnici/:id", provjeriToken, samoAdmin, async (req, res) => {
     res.json(korisnik);
   } catch (error) {
     console.error(error);
-    res.status(500).json({
-      error: "Greška kod izmjene korisnika",
-    });
+    res.status(500).json({ error: "Greška kod izmjene korisnika" });
   }
 });
+
+/* RESET LOZINKE — ADMIN */
+app.put(
+  "/admin/reset-lozinka/:id",
+  provjeriToken,
+  samoAdmin,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { novaLozinka } = req.body;
+
+      if (!novaLozinka || novaLozinka.length < 6) {
+        return res.status(400).json({
+          error: "Nova lozinka mora imati najmanje 6 karaktera.",
+        });
+      }
+
+      const hashovanaLozinka = await bcrypt.hash(novaLozinka, 10);
+
+      await prisma.korisnik.update({
+        where: { id: Number(id) },
+        data: {
+          lozinka: hashovanaLozinka,
+        },
+      });
+
+      res.json({
+        message: "Lozinka je uspješno resetovana.",
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        error: "Greška kod resetovanja lozinke",
+      });
+    }
+  }
+);
 
 app.delete(
   "/admin/korisnici/:id",
@@ -286,22 +275,15 @@ app.delete(
         where: { id: Number(id) },
       });
 
-      res.json({
-        message: "Korisnik obrisan",
-      });
+      res.json({ message: "Korisnik obrisan" });
     } catch (error) {
       console.error(error);
-      res.status(500).json({
-        error: "Greška kod brisanja korisnika",
-      });
+      res.status(500).json({ error: "Greška kod brisanja korisnika" });
     }
   }
 );
 
-/* =========================
-   ZAPOSLENICI
-========================= */
-
+/* ZAPOSLENICI */
 app.get("/zaposlenici", provjeriToken, samoAdmin, async (req, res) => {
   try {
     const zaposlenici = await prisma.zaposlenik.findMany({
@@ -329,9 +311,7 @@ app.get("/zaposlenici", provjeriToken, samoAdmin, async (req, res) => {
     res.json(rezultat);
   } catch (error) {
     console.error(error);
-    res.status(500).json({
-      error: "Greška kod učitavanja zaposlenika",
-    });
+    res.status(500).json({ error: "Greška kod učitavanja zaposlenika" });
   }
 });
 
@@ -352,9 +332,7 @@ app.post("/zaposlenici", provjeriToken, samoAdmin, async (req, res) => {
     res.json(novi);
   } catch (error) {
     console.error(error);
-    res.status(500).json({
-      error: "Greška kod dodavanja zaposlenika",
-    });
+    res.status(500).json({ error: "Greška kod dodavanja zaposlenika" });
   }
 });
 
@@ -375,9 +353,7 @@ app.put("/zaposlenici/:id", provjeriToken, samoAdmin, async (req, res) => {
     res.json(update);
   } catch (error) {
     console.error(error);
-    res.status(500).json({
-      error: "Greška kod izmjene zaposlenika",
-    });
+    res.status(500).json({ error: "Greška kod izmjene zaposlenika" });
   }
 });
 
@@ -389,21 +365,14 @@ app.delete("/zaposlenici/:id", provjeriToken, samoAdmin, async (req, res) => {
       where: { id: Number(id) },
     });
 
-    res.json({
-      message: "Zaposlenik obrisan",
-    });
+    res.json({ message: "Zaposlenik obrisan" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({
-      error: "Greška kod brisanja zaposlenika",
-    });
+    res.status(500).json({ error: "Greška kod brisanja zaposlenika" });
   }
 });
 
-/* =========================
-   ODSUSTVA
-========================= */
-
+/* ODSUSTVA */
 app.get("/godisnji", provjeriToken, async (req, res) => {
   try {
     const gdje =
@@ -420,9 +389,7 @@ app.get("/godisnji", provjeriToken, async (req, res) => {
     res.json(zahtjevi);
   } catch (error) {
     console.error(error);
-    res.status(500).json({
-      error: "Greška kod učitavanja odsustava",
-    });
+    res.status(500).json({ error: "Greška kod učitavanja odsustava" });
   }
 });
 
@@ -458,9 +425,7 @@ app.post("/godisnji", provjeriToken, async (req, res) => {
     res.json(novi);
   } catch (error) {
     console.error(error);
-    res.status(500).json({
-      error: "Greška kod dodavanja odsustva",
-    });
+    res.status(500).json({ error: "Greška kod dodavanja odsustva" });
   }
 });
 
@@ -477,9 +442,7 @@ app.put("/godisnji/:id", provjeriToken, samoAdmin, async (req, res) => {
     res.json(zahtjev);
   } catch (error) {
     console.error(error);
-    res.status(500).json({
-      error: "Greška kod izmjene statusa",
-    });
+    res.status(500).json({ error: "Greška kod izmjene statusa" });
   }
 });
 
@@ -491,20 +454,12 @@ app.delete("/godisnji/:id", provjeriToken, async (req, res) => {
       where: { id: Number(id) },
     });
 
-    res.json({
-      message: "Odsustvo obrisano",
-    });
+    res.json({ message: "Odsustvo obrisano" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({
-      error: "Greška kod brisanja odsustva",
-    });
+    res.status(500).json({ error: "Greška kod brisanja odsustva" });
   }
 });
-
-/* =========================
-   START SERVER
-========================= */
 
 const PORT = process.env.PORT || 3000;
 
