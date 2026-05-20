@@ -271,6 +271,12 @@ app.delete(
     try {
       const { id } = req.params;
 
+if (Number(id) === Number(req.korisnik.id)) {
+  return res.status(400).json({
+    error: "Ne možete obrisati vlastiti admin nalog.",
+  });
+}
+
       await prisma.korisnik.delete({
         where: { id: Number(id) },
       });
