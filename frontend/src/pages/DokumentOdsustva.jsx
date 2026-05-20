@@ -2,6 +2,7 @@ import { useState } from "react";
 
 function formatDatum(datum) {
   const d = new Date(datum);
+
   const dan = String(d.getDate()).padStart(2, "0");
   const mjesec = String(d.getMonth() + 1).padStart(2, "0");
   const godina = d.getFullYear();
@@ -20,31 +21,46 @@ function DokumentOdsustva() {
   const [broj, setBroj] = useState("");
   const [datum, setDatum] = useState(formatDatum(new Date()));
 
-  const podaci = JSON.parse(localStorage.getItem("dokumentOdsustva"));
-  const tip = localStorage.getItem("tipDokumenta") || "odobrenje";
+  const podaci = JSON.parse(
+    localStorage.getItem("dokumentOdsustva")
+  );
+
+  const tip =
+    localStorage.getItem("tipDokumenta") || "odobrenje";
 
   if (!podaci) {
     return (
       <div className="p-10">
-        <h1 className="text-2xl font-bold">Nema podataka za dokument.</h1>
+        <h1 className="text-2xl font-bold">
+          Nema podataka za dokument.
+        </h1>
       </div>
     );
   }
 
-  const ukupnoDana = brojDana(podaci.od, podaci.do);
+  const ukupnoDana = brojDana(
+    podaci.od,
+    podaci.do
+  );
 
   const naslov =
     tip === "rjesenje"
       ? "RJEŠENJE O ODOBRENJU ODSUSTVA"
       : "ODOBRENJE ODSUSTVA";
 
-  const potpis =
+  const potpisnik =
     tip === "rjesenje"
-      ? "Predsjednik Medžlisa"
-      : "Glavni imam";
+      ? {
+          funkcija: "Predsjednik IO Medžlisa",
+          ime: "Samir Bećirspahić, dipl. ing.",
+        }
+      : {
+          funkcija: "Glavni imam",
+          ime: "mr. Mensur ef. Ćehić",
+        };
 
   return (
-    <div className="bg-slate-100 min-h-screen p-8">
+    <div className="bg-slate-200 min-h-screen p-8">
       <style>
         {`
           @media print {
@@ -59,7 +75,6 @@ function DokumentOdsustva() {
             .document {
               box-shadow: none !important;
               margin: 0 !important;
-              width: 100% !important;
             }
           }
         `}
@@ -75,7 +90,6 @@ function DokumentOdsustva() {
 
         <input
           className="border rounded-lg px-4 py-2"
-          placeholder="Datum"
           value={datum}
           onChange={(e) => setDatum(e.target.value)}
         />
@@ -84,59 +98,92 @@ function DokumentOdsustva() {
           onClick={() => window.print()}
           className="bg-slate-800 text-white px-5 py-2 rounded-lg"
         >
-          Print / Sačuvaj kao PDF
+          Print / PDF
         </button>
       </div>
 
-      <div className="document bg-white max-w-4xl mx-auto p-14 shadow rounded-xl text-slate-900">
-        <div className="text-center border-b pb-6 mb-8">
-          <h1 className="text-2xl font-bold">
-            MEDŽLIS ISLAMSKE ZAJEDNICE BIHAĆ
+      <div className="document bg-white max-w-[850px] min-h-[1120px] mx-auto relative shadow-xl overflow-hidden">
+        {/* Memorandum pozadina */}
+        <img
+          src="/memorandum-miz-bihac.png"
+          alt="Memorandum"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+
+        {/* Sadržaj dokumenta */}
+        <div className="relative z-10 px-20 pt-[240px] pb-[180px] text-[18px] leading-9 text-slate-900">
+          <div className="flex justify-between mb-12 text-[16px]">
+            <div>
+              Broj: {broj || "________________"}
+            </div>
+
+            <div>
+              Bihać, {datum}
+            </div>
+          </div>
+
+          <h1 className="text-center text-[28px] font-bold mb-16">
+            {naslov}
           </h1>
-          <p className="text-sm mt-2">
-            Evidencija odsustava zaposlenika
+
+          <p className="mb-8 text-justify">
+            Zaposleniku{" "}
+            <strong>
+              {podaci.zaposlenik?.ime}
+            </strong>
+            , odobrava se korištenje odsustva po osnovu{" "}
+            <strong>{podaci.vrsta}</strong>.
           </p>
-        </div>
 
-        <div className="mb-8 text-sm">
-          <p>Broj: {broj || "___________"}</p>
-          <p>Bihać, {datum}</p>
-        </div>
-
-        <h2 className="text-center text-xl font-bold mb-10">
-          {naslov}
-        </h2>
-
-        <p className="mb-6 leading-8 text-justify">
-          Zaposleniku <strong>{podaci.zaposlenik?.ime}</strong>,
-          na radnom mjestu <strong>{podaci.zaposlenik?.pozicija || "____________"}</strong>,
-          odobrava se korištenje odsustva po osnovu:
-          <strong> {podaci.vrsta}</strong>.
-        </p>
-
-        <p className="mb-6 leading-8 text-justify">
-          Odsustvo se odobrava u periodu od{" "}
-          <strong>{formatDatum(podaci.od)}</strong> do{" "}
-          <strong>{formatDatum(podaci.do)}</strong>, u ukupnom trajanju od{" "}
-          <strong>{ukupnoDana}</strong> dana.
-        </p>
-
-        {podaci.napomena && (
-          <p className="mb-6 leading-8 text-justify">
-            Napomena: {podaci.napomena}
+          <p className="mb-8 text-justify">
+            Odsustvo se odobrava u periodu od{" "}
+            <strong>
+              {formatDatum(podaci.od)}
+            </strong>{" "}
+            do{" "}
+            <strong>
+              {formatDatum(podaci.do)}
+            </strong>
+            , u ukupnom trajanju od{" "}
+            <strong>{ukupnoDana}</strong> dana.
           </p>
-        )}
 
-        <p className="mb-12 leading-8 text-justify">
-          Ovo {tip === "rjesenje" ? "rješenje" : "odobrenje"} izdaje se na osnovu
-          evidentiranog zahtjeva u sistemu GO Evidencija i služi u svrhu interne
-          evidencije odsustava zaposlenika.
-        </p>
+          {podaci.napomena && (
+            <p className="mb-8 text-justify">
+              Napomena: {podaci.napomena}
+            </p>
+          )}
 
-        <div className="flex justify-end mt-20">
-          <div className="text-center">
-            <p className="mb-16">{potpis}</p>
-            <p>________________________</p>
+          <p className="mb-20 text-justify">
+            Ovo{" "}
+            {tip === "rjesenje"
+              ? "rješenje"
+              : "odobrenje"}{" "}
+            izdaje se na osnovu podnesenog zahtjeva
+            i služi za potrebe evidencije odsustava
+            zaposlenika Medžlisa Islamske zajednice
+            Bihać.
+          </p>
+
+          <div className="flex justify-end mt-24">
+            <div className="text-center">
+              <p className="font-semibold">
+                {potpisnik.funkcija}
+              </p>
+
+              <div className="h-24"></div>
+
+              <p className="font-semibold">
+                {potpisnik.ime}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-24 text-[15px]">
+            <p>Dostavljeno:</p>
+            <p>- imenovanom</p>
+            <p>- personalni dosje</p>
+            <p>- arhiva</p>
           </div>
         </div>
       </div>
