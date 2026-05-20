@@ -154,7 +154,7 @@ function DokumentOdsustva() {
             </p>
           )}
 
-          <p className="mb-20 text-justify">
+          <p className="mb-12 text-justify">
             Ovo{" "}
             {tip === "rjesenje"
               ? "rješenje"
@@ -165,13 +165,13 @@ function DokumentOdsustva() {
             Bihać.
           </p>
 
-          <div className="flex justify-end mt-24">
+          <div className="flex justify-end mt-12">
             <div className="text-center">
               <p className="font-semibold">
                 {potpisnik.funkcija}
               </p>
 
-              <div className="h-24"></div>
+              <div className="h-10"></div>
 
               <p className="font-semibold">
                 {potpisnik.ime}
