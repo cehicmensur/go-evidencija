@@ -41,3 +41,10 @@ model Korisnik {
   zaposlenikId Int?   @unique
   zaposlenik   Zaposlenik? @relation(fields: [zaposlenikId], references: [id])
 }
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  korisnik  String
+  akcija    String
+  detalji   String?
+  createdAt DateTime @default(now())
+}
