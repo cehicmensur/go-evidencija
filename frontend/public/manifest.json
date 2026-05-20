@@ -1,0 +1,9 @@
+{
+  "name": "GO Evidencija",
+  "short_name": "GO Sistem",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f1f5f9",
+  "theme_color": "#1e293b",
+  "icons": []
+}
