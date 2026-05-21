@@ -2,171 +2,143 @@ import { useEffect, useState } from "react";
 
 function Zaposlenici() {
   const [zaposlenici, setZaposlenici] = useState([]);
+  const [greska, setGreska] = useState("");
 
   const [ime, setIme] = useState("");
   const [pozicija, setPozicija] = useState("");
-  const [godisnji, setGodisnji] = useState("");
+  const [datumPocetka, setDatumPocetka] = useState("");
 
+  const token = localStorage.getItem("token");
   const API_URL = "https://go-evidencija-backend.onrender.com";
 
-  const ucitajZaposlenike = async () => {
-    try {
-      const res = await fetch(`${API_URL}/zaposlenici`);
-      const data = await res.json();
+  const ucitaj = () => {
+    fetch(`${API_URL}/zaposlenici`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) {
+          setGreska(data.error);
+          setZaposlenici([]);
+          return;
+        }
 
-      setZaposlenici(data);
-    } catch (error) {
-      console.error(error);
-    }
+        setZaposlenici(data);
+        setGreska("");
+      })
+      .catch(() => {
+        setGreska("Greška kod učitavanja zaposlenika.");
+      });
   };
 
   useEffect(() => {
-    ucitajZaposlenike();
+    ucitaj();
   }, []);
 
-  const dodajZaposlenika = async () => {
-    try {
-      const res = await fetch(`${API_URL}/zaposlenici`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ime,
-          pozicija,
-          godisnji: Number(godisnji),
-        }),
-      });
+  const dodajZaposlenika = () => {
+    if (!ime || !pozicija || !datumPocetka) {
+      alert("Popuni sva polja.");
+      return;
+    }
 
-      const data = await res.json();
-
-      if (data.error) {
-        alert(data.error);
-        return;
-      }
-
+    fetch(`${API_URL}/zaposlenici`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        ime,
+        pozicija,
+        datumPocetka,
+      }),
+    }).then(() => {
       setIme("");
       setPozicija("");
-      setGodisnji("");
-
-      ucitajZaposlenike();
-    } catch (error) {
-      console.error(error);
-    }
+      setDatumPocetka("");
+      ucitaj();
+    });
   };
 
-  const obrisiZaposlenika = async (id) => {
-    const potvrda = window.confirm(
-      "Da li ste sigurni da želite obrisati zaposlenika?"
-    );
+  const obrisi = (id) => {
+    if (!confirm("Da li sigurno želiš obrisati zaposlenika?")) return;
 
-    if (!potvrda) return;
-
-    try {
-      await fetch(`${API_URL}/zaposlenici/${id}`, {
-        method: "DELETE",
-      });
-
-      ucitajZaposlenike();
-    } catch (error) {
-      console.error(error);
-    }
+    fetch(`${API_URL}/zaposlenici/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }).then(() => ucitaj());
   };
 
   return (
-    <div className="p-6">
-      <div className="bg-white rounded-3xl shadow-xl p-6 mb-8">
-        <h1 className="text-3xl font-bold text-slate-800 mb-6">
-          Zaposlenici
-        </h1>
+    <div>
+      <h1 className="text-4xl font-bold mb-8">Zaposlenici</h1>
 
-        <div className="grid md:grid-cols-3 gap-4">
-          <input
-            type="text"
-            placeholder="Ime i prezime"
-            className="border border-slate-300 rounded-xl px-4 py-3"
-            value={ime}
-            onChange={(e) => setIme(e.target.value)}
-          />
-
-          <input
-            type="text"
-            placeholder="Pozicija"
-            className="border border-slate-300 rounded-xl px-4 py-3"
-            value={pozicija}
-            onChange={(e) => setPozicija(e.target.value)}
-          />
-
-          <input
-            type="number"
-            placeholder="Broj dana godišnjeg"
-            className="border border-slate-300 rounded-xl px-4 py-3"
-            value={godisnji}
-            onChange={(e) => setGodisnji(e.target.value)}
-          />
+      {greska && (
+        <div className="bg-red-100 text-red-700 p-4 rounded-xl mb-6">
+          {greska}
         </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <input
+          className="border border-slate-300 rounded-xl px-4 py-3"
+          placeholder="Ime i prezime"
+          value={ime}
+          onChange={(e) => setIme(e.target.value)}
+        />
+
+        <input
+          className="border border-slate-300 rounded-xl px-4 py-3"
+          placeholder="Pozicija"
+          value={pozicija}
+          onChange={(e) => setPozicija(e.target.value)}
+        />
+
+        <input
+          type="date"
+          className="border border-slate-300 rounded-xl px-4 py-3"
+          value={datumPocetka}
+          onChange={(e) => setDatumPocetka(e.target.value)}
+        />
 
         <button
           onClick={dodajZaposlenika}
-          className="mt-5 bg-slate-800 hover:bg-slate-700 text-white px-6 py-3 rounded-xl font-semibold"
+          className="bg-slate-800 hover:bg-slate-700 text-white rounded-xl px-4 py-3"
         >
-          Dodaj zaposlenika
+          Dodaj
         </button>
       </div>
 
-      <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
+      <div className="overflow-x-auto bg-white rounded-2xl shadow">
         <table className="w-full">
-          <thead className="bg-slate-100">
+          <thead className="bg-slate-800 text-white">
             <tr>
-              <th className="text-left p-4">
-                ID
-              </th>
-
-              <th className="text-left p-4">
-                Ime i prezime
-              </th>
-
-              <th className="text-left p-4">
-                Pozicija
-              </th>
-
-              <th className="text-left p-4">
-                Godišnji
-              </th>
-
-              <th className="text-left p-4">
-                Akcije
-              </th>
+              <th className="p-4 text-left">ID</th>
+              <th className="p-4 text-left">Ime i prezime</th>
+              <th className="p-4 text-left">Pozicija</th>
+              <th className="p-4 text-left">Ukupno GO</th>
+              <th className="p-4 text-left">Iskorišteno</th>
+              <th className="p-4 text-left">Preostalo</th>
+              <th className="p-4 text-left">Akcija</th>
             </tr>
           </thead>
 
           <tbody>
             {zaposlenici.map((z) => (
-              <tr
-                key={z.id}
-                className="border-t border-slate-200"
-              >
-                <td className="p-4">
-                  {z.id}
-                </td>
-
-                <td className="p-4 font-medium">
-                  {z.ime}
-                </td>
-
-                <td className="p-4">
-                  {z.pozicija}
-                </td>
-
-                <td className="p-4">
-                  {z.godisnji}
-                </td>
-
-                <td className="p-4">
+              <tr key={z.id} className="border-b">
+                <td className="p-3 font-bold">{z.id}</td>
+                <td className="p-3">{z.ime}</td>
+                <td className="p-3">{z.pozicija}</td>
+                <td className="p-3">{z.godisnji}</td>
+                <td className="p-3">{z.iskoristeno ?? 0}</td>
+                <td className="p-3">{z.preostalo ?? z.godisnji}</td>
+                <td className="p-3">
                   <button
-                    onClick={() =>
-                      obrisiZaposlenika(z.id)
-                    }
+                    onClick={() => obrisi(z.id)}
                     className="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg"
                   >
                     Obriši
@@ -176,6 +148,12 @@ function Zaposlenici() {
             ))}
           </tbody>
         </table>
+
+        {zaposlenici.length === 0 && !greska && (
+          <div className="p-6 text-slate-500">
+            Nema zaposlenika za prikaz.
+          </div>
+        )}
       </div>
     </div>
   );
