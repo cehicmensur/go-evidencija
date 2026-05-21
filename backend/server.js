@@ -104,7 +104,26 @@ app.post("/register", async (req, res) => {
     res.status(500).json({ error: "Greška kod registracije" });
   }
 });
+app.get("/zaposlenici-javno", async (req, res) => {
+  try {
+    const zaposlenici = await prisma.zaposlenik.findMany({
+      select: {
+        id: true,
+        ime: true,
+      },
+      orderBy: {
+        ime: "asc",
+      },
+    });
 
+    res.json(zaposlenici);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "Greška kod učitavanja zaposlenika",
+    });
+  }
+});
 /* LOGIN */
 app.post("/login", async (req, res) => {
   try {

@@ -1,84 +1,135 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function Login() {
-  const [ime, setIme] = useState("");
+  const [registracija, setRegistracija] = useState(false);
+
   const [email, setEmail] = useState("");
   const [lozinka, setLozinka] = useState("");
+
+  const [zaposlenici, setZaposlenici] = useState([]);
   const [zaposlenikId, setZaposlenikId] = useState("");
+
+  const [poruka, setPoruka] = useState("");
 
   const API_URL = "https://go-evidencija-backend.onrender.com";
 
-  const login = () => {
-    fetch(`${API_URL}/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, lozinka }),
-    })
+  useEffect(() => {
+    fetch(`${API_URL}/zaposlenici-javno`)
       .then((res) => res.json())
       .then((data) => {
-        if (data.error) {
-          alert(data.error);
-          return;
-        }
-
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("korisnik", JSON.stringify(data.korisnik));
-
-        window.location.href = "/";
+        setZaposlenici(data);
       });
+  }, []);
+
+  const login = async () => {
+    try {
+      const res = await fetch(`${API_URL}/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          lozinka,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.error) {
+        setPoruka(data.error);
+        return;
+      }
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem(
+        "korisnik",
+        JSON.stringify(data.korisnik)
+      );
+
+      window.location.reload();
+    } catch (error) {
+      console.error(error);
+      setPoruka("Greška kod prijave.");
+    }
   };
 
-  const register = () => {
-    if (!ime || !email || !lozinka || !zaposlenikId) {
-      alert("Popunite sva polja za registraciju.");
-      return;
-    }
-
-    fetch(`${API_URL}/register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        ime,
-        email,
-        lozinka,
-        zaposlenikId,
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.error) {
-          alert(data.error);
-          return;
-        }
-
-        alert(data.message);
-        setIme("");
-        setEmail("");
-        setLozinka("");
-        setZaposlenikId("");
+  const registruj = async () => {
+    try {
+      const res = await fetch(`${API_URL}/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          lozinka,
+          zaposlenikId,
+        }),
       });
+
+      const data = await res.json();
+
+      if (data.error) {
+        setPoruka(data.error);
+        return;
+      }
+
+      setPoruka(
+        "Registracija uspješna. Administrator treba odobriti nalog."
+      );
+
+      setEmail("");
+      setLozinka("");
+      setZaposlenikId("");
+    } catch (error) {
+      console.error(error);
+      setPoruka("Greška kod registracije.");
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100">
-      <div className="bg-white p-10 rounded-2xl shadow w-full max-w-md">
-        <h1 className="text-3xl font-bold mb-2 text-center">
-          GO Sistem
-        </h1>
+    <div className="min-h-screen flex items-center justify-center bg-slate-100 px-4">
+      <div className="bg-white shadow-2xl rounded-3xl w-full max-w-md p-10">
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-bold text-slate-800">
+            GO Evidencija
+          </h1>
 
-        <p className="text-slate-500 text-center mb-8">
-          Prijava i registracija zaposlenika
-        </p>
+          <p className="text-slate-500 mt-3">
+            Medžlis Islamske zajednice Bihać
+          </p>
+        </div>
 
-        <div className="flex flex-col gap-4">
+        {poruka && (
+          <div className="mb-6 bg-slate-100 border border-slate-300 text-slate-700 p-4 rounded-xl text-sm">
+            {poruka}
+          </div>
+        )}
+
+        <div className="space-y-4">
+          {registracija && (
+            <select
+              className="w-full border border-slate-300 rounded-xl px-4 py-3"
+              value={zaposlenikId}
+              onChange={(e) => setZaposlenikId(e.target.value)}
+            >
+              <option value="">
+                Odaberi ime i prezime
+              </option>
+
+              {zaposlenici.map((z) => (
+                <option key={z.id} value={z.id}>
+                  {z.ime}
+                </option>
+              ))}
+            </select>
+          )}
+
           <input
             type="email"
             placeholder="Email"
-            className="border rounded-xl px-4 py-3"
+            className="w-full border border-slate-300 rounded-xl px-4 py-3"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -86,45 +137,39 @@ function Login() {
           <input
             type="password"
             placeholder="Lozinka"
-            className="border rounded-xl px-4 py-3"
+            className="w-full border border-slate-300 rounded-xl px-4 py-3"
             value={lozinka}
             onChange={(e) => setLozinka(e.target.value)}
           />
 
+          {registracija ? (
+            <button
+              onClick={registruj}
+              className="w-full bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-xl font-semibold"
+            >
+              Registruj se
+            </button>
+          ) : (
+            <button
+              onClick={login}
+              className="w-full bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-xl font-semibold"
+            >
+              Prijava
+            </button>
+          )}
+        </div>
+
+        <div className="mt-8 text-center">
           <button
-            onClick={login}
-            className="bg-slate-800 hover:bg-slate-700 text-white rounded-xl py-3"
+            onClick={() => {
+              setRegistracija(!registracija);
+              setPoruka("");
+            }}
+            className="text-slate-600 hover:text-slate-800 text-sm"
           >
-            Prijava
-          </button>
-
-          <hr className="my-4" />
-
-          <h2 className="text-xl font-semibold">
-            Registracija zaposlenika
-          </h2>
-
-          <input
-            type="text"
-            placeholder="Ime i prezime"
-            className="border rounded-xl px-4 py-3"
-            value={ime}
-            onChange={(e) => setIme(e.target.value)}
-          />
-
-          <input
-            type="number"
-            placeholder="ID zaposlenika"
-            className="border rounded-xl px-4 py-3"
-            value={zaposlenikId}
-            onChange={(e) => setZaposlenikId(e.target.value)}
-          />
-
-          <button
-            onClick={register}
-            className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl py-3"
-          >
-            Pošalji zahtjev za registraciju
+            {registracija
+              ? "Već imate nalog? Prijava"
+              : "Nemate nalog? Registracija"}
           </button>
         </div>
       </div>

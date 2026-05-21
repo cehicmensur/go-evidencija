@@ -10,6 +10,7 @@ datasource db {
 model Zaposlenik {
   id        Int    @id @default(autoincrement())
   ime       String
+  prezime   String @default("")
   pozicija  String
   godisnji  Int
 
@@ -31,16 +32,18 @@ model GodisnjiOdmor {
 }
 
 model Korisnik {
-  id           Int    @id @default(autoincrement())
+  id           Int     @id @default(autoincrement())
   ime          String
-  email        String @unique
+  prezime      String  @default("")
+  email        String  @unique
   lozinka      String
-  uloga        String @default("zaposlenik")
+  uloga        String  @default("zaposlenik")
   odobren      Boolean @default(false)
 
   zaposlenikId Int?   @unique
   zaposlenik   Zaposlenik? @relation(fields: [zaposlenikId], references: [id])
 }
+
 model AuditLog {
   id        Int      @id @default(autoincrement())
   korisnik  String
