@@ -8,8 +8,10 @@ function Dashboard() {
   const token = localStorage.getItem("token");
   const korisnik = JSON.parse(localStorage.getItem("korisnik"));
 
+  const API_URL = "https://go-evidencija-backend.onrender.com";
+
   useEffect(() => {
-    fetch("https://go-evidencija-backend.onrender.com/godisnji", {
+    fetch(`${API_URL}/godisnji`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -21,11 +23,14 @@ function Dashboard() {
           return;
         }
 
-        setOdsustva(data);
+        setOdsustva(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        setGreska("Greška kod učitavanja odsustava.");
       });
 
     if (korisnik?.uloga === "admin") {
-      fetch("https://go-evidencija-backend.onrender.com/zaposlenici", {
+      fetch(`${API_URL}/zaposlenici`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -37,7 +42,10 @@ function Dashboard() {
             return;
           }
 
-          setZaposlenici(data);
+          setZaposlenici(Array.isArray(data) ? data : []);
+        })
+        .catch(() => {
+          setGreska("Greška kod učitavanja zaposlenika.");
         });
     }
   }, []);
@@ -88,45 +96,43 @@ function Dashboard() {
       )}
 
       {korisnik?.uloga === "admin" && (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-2xl shadow p-6">
-              <p className="text-slate-500 mb-2">
-                Zaposlenici
-              </p>
-              <h2 className="text-5xl font-bold text-slate-800">
-                {ukupnoZaposlenika}
-              </h2>
-            </div>
-
-            <div className="bg-white rounded-2xl shadow p-6">
-              <p className="text-slate-500 mb-2">
-                Ukupno GO
-              </p>
-              <h2 className="text-5xl font-bold text-slate-800">
-                {ukupnoGO}
-              </h2>
-            </div>
-
-            <div className="bg-white rounded-2xl shadow p-6">
-              <p className="text-slate-500 mb-2">
-                Iskorišteno
-              </p>
-              <h2 className="text-5xl font-bold text-orange-600">
-                {ukupnoIskoristeno}
-              </h2>
-            </div>
-
-            <div className="bg-white rounded-2xl shadow p-6">
-              <p className="text-slate-500 mb-2">
-                Preostalo
-              </p>
-              <h2 className="text-5xl font-bold text-emerald-700">
-                {ukupnoPreostalo}
-              </h2>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-2xl shadow p-6">
+            <p className="text-slate-500 mb-2">
+              Zaposlenici
+            </p>
+            <h2 className="text-5xl font-bold text-slate-800">
+              {ukupnoZaposlenika}
+            </h2>
           </div>
-        </>
+
+          <div className="bg-white rounded-2xl shadow p-6">
+            <p className="text-slate-500 mb-2">
+              Ukupno GO
+            </p>
+            <h2 className="text-5xl font-bold text-slate-800">
+              {ukupnoGO}
+            </h2>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow p-6">
+            <p className="text-slate-500 mb-2">
+              Iskorišteno
+            </p>
+            <h2 className="text-5xl font-bold text-orange-600">
+              {ukupnoIskoristeno}
+            </h2>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow p-6">
+            <p className="text-slate-500 mb-2">
+              Preostalo
+            </p>
+            <h2 className="text-5xl font-bold text-emerald-700">
+              {ukupnoPreostalo}
+            </h2>
+          </div>
+        </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -163,33 +169,41 @@ function Dashboard() {
           Zadnja odsustva
         </h2>
 
-        <table className="w-full">
-          <thead className="bg-slate-800 text-white">
-            <tr>
-              <th className="p-3 text-left">Zaposlenik</th>
-              <th className="p-3 text-left">Vrsta</th>
-              <th className="p-3 text-left">Status</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {odsustva.slice(0, 5).map((o) => (
-              <tr key={o.id} className="border-b">
-                <td className="p-3">
-                  {o.zaposlenik?.ime || korisnik?.ime}
-                </td>
-
-                <td className="p-3">
-                  {o.vrsta || "Godišnji odmor"}
-                </td>
-
-                <td className="p-3 font-semibold">
-                  {o.status}
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-slate-800 text-white">
+              <tr>
+                <th className="p-3 text-left">
+                  Zaposlenik
+                </th>
+                <th className="p-3 text-left">
+                  Vrsta
+                </th>
+                <th className="p-3 text-left">
+                  Status
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {odsustva.slice(0, 5).map((o) => (
+                <tr key={o.id} className="border-b">
+                  <td className="p-3">
+                    {o.zaposlenik?.ime || korisnik?.ime}
+                  </td>
+
+                  <td className="p-3">
+                    {o.vrsta || "Godišnji odmor"}
+                  </td>
+
+                  <td className="p-3 font-semibold">
+                    {o.status}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
         {odsustva.length === 0 && (
           <p className="text-slate-500 mt-4">
