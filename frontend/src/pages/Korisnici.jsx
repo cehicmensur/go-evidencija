@@ -135,7 +135,7 @@ function Korisnici() {
           <thead className="bg-slate-800 text-white">
             <tr>
               <th className="p-4 text-left">ID</th>
-              <th className="p-4 text-left">Ime</th>
+              <th className="p-4 text-left">Ime i prezime</th>
               <th className="p-4 text-left">Email</th>
               <th className="p-4 text-left">Uloga</th>
               <th className="p-4 text-left">Zaposlenik</th>

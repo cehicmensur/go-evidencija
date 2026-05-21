@@ -160,7 +160,7 @@ function Zaposlenici() {
       <div className="no-print grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <input
           className="border border-slate-300 rounded-xl px-4 py-3"
-          placeholder="Ime"
+          placeholder="Ime i prezime"
           value={ime}
           onChange={(e) => setIme(e.target.value)}
         />
