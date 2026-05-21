@@ -10,7 +10,6 @@ datasource db {
 model Zaposlenik {
   id        Int    @id @default(autoincrement())
   ime       String
-  prezime   String @default("")
   pozicija  String
   godisnji  Int
 
@@ -34,7 +33,6 @@ model GodisnjiOdmor {
 model Korisnik {
   id           Int     @id @default(autoincrement())
   ime          String
-  prezime      String  @default("")
   email        String  @unique
   lozinka      String
   uloga        String  @default("zaposlenik")
