@@ -33,10 +33,16 @@ function DokumentOdsustva() {
 
   const ukupnoDana = brojDana(podaci.od, podaci.do);
 
-  const naslov =
-    tip === "rjesenje"
-      ? "RJEŠENJE O ODOBRENJU ODSUSTVA"
-      : "ODOBRENJE ODSUSTVA";
+ const jeGodisnji = podaci.vrsta === "Godišnji odmor";
+
+const naslov =
+  tip === "rjesenje"
+    ? jeGodisnji
+      ? "RJEŠENJE O KORIŠTENJU GODIŠNJEG ODMORA"
+      : "RJEŠENJE O ODOBRENJU ODSUSTVA"
+    : jeGodisnji
+    ? "ODOBRENJE KORIŠTENJA GODIŠNJEG ODMORA"
+    : "ODOBRENJE ODSUSTVA";
 
   const potpisnik =
     tip === "rjesenje"
@@ -136,18 +142,80 @@ function DokumentOdsustva() {
             {naslov}
           </h1>
 
-          <p className="text-[17px] leading-8 text-justify mb-[9mm]">
-            Zaposleniku <strong>{podaci.zaposlenik?.ime}</strong>,
-            odobrava se korištenje odsustva po osnovu{" "}
-            <strong>{podaci.vrsta}</strong>.
-          </p>
+          {jeGodisnji ? (
+  <>
+    {tip === "odobrenje" ? (
+      <>
+        <p className="text-[17px] leading-8 text-justify mb-[9mm]">
+          Na osnovu člana 14. Pravilnika o službi u Islamskoj zajednici u
+          Bosni i Hercegovini, a povodom podnesenog zahtjeva zaposlenika
+          <strong> {podaci.zaposlenik?.ime}</strong>, daje se
+          odobrenje za korištenje godišnjeg odmora.
+        </p>
 
-          <p className="text-[17px] leading-8 text-justify mb-[9mm]">
-            Odsustvo se odobrava u periodu od{" "}
-            <strong>{formatDatum(podaci.od)}</strong> do{" "}
-            <strong>{formatDatum(podaci.do)}</strong>, u ukupnom trajanju od{" "}
-            <strong>{ukupnoDana}</strong> dana.
-          </p>
+        <p className="text-[17px] leading-8 text-justify mb-[9mm]">
+          Zaposleniku <strong>{podaci.zaposlenik?.ime}</strong>
+          odobrava se korištenje godišnjeg odmora u periodu od
+          <strong> {formatDatum(podaci.od)}</strong> do
+          <strong> {formatDatum(podaci.do)}</strong>, u ukupnom
+          trajanju od <strong>{ukupnoDana}</strong> dana.
+        </p>
+
+        <p className="text-[17px] leading-8 text-justify mb-[9mm]">
+          Zaposlenik je dužan vratiti se na rad prvog narednog radnog
+          dana po isteku odobrenog godišnjeg odmora.
+        </p>
+      </>
+    ) : (
+      <>
+        <p className="text-[17px] leading-8 text-justify mb-[9mm]">
+          Na osnovu člana 48. Pravilnika o organizaciji i radu medžlisa i
+          džemata Islamske zajednice u Bosni i Hercegovini, a u vezi sa
+          članom 14. Pravilnika o službi u Islamskoj zajednici u Bosni i
+          Hercegovini, predsjednik Izvršnog odbora Medžlisa Islamske
+          zajednice Bihać donosi:
+        </p>
+
+        <p className="text-center text-[18px] font-bold mb-[9mm]">
+          R J E Š E N J E
+        </p>
+
+        <p className="text-[17px] leading-8 text-justify mb-[9mm]">
+          Zaposleniku <strong>{podaci.zaposlenik?.ime}</strong>
+          odobrava se korištenje godišnjeg odmora u periodu od
+          <strong> {formatDatum(podaci.od)}</strong> do
+          <strong> {formatDatum(podaci.do)}</strong>, u ukupnom
+          trajanju od <strong>{ukupnoDana}</strong> dana.
+        </p>
+
+        <p className="text-[17px] leading-8 text-justify mb-[9mm]">
+          Za vrijeme korištenja godišnjeg odmora zaposleniku pripadaju
+          sva prava iz radnog odnosa u skladu sa važećim propisima
+          Islamske zajednice u Bosni i Hercegovini.
+        </p>
+
+        <p className="text-[17px] leading-8 text-justify mb-[9mm]">
+          Ovo rješenje stupa na snagu danom donošenja.
+        </p>
+      </>
+    )}
+  </>
+) : (
+  <>
+    <p className="text-[17px] leading-8 text-justify mb-[9mm]">
+      Zaposleniku <strong>{podaci.zaposlenik?.ime}</strong>,
+      odobrava se korištenje odsustva po osnovu
+      <strong> {podaci.vrsta}</strong>.
+    </p>
+
+    <p className="text-[17px] leading-8 text-justify mb-[9mm]">
+      Odsustvo se odobrava u periodu od
+      <strong> {formatDatum(podaci.od)}</strong> do
+      <strong> {formatDatum(podaci.do)}</strong>, u ukupnom trajanju od
+      <strong> {ukupnoDana}</strong> dana.
+    </p>
+  </>
+)}
 
           {podaci.napomena && (
             <p className="text-[17px] leading-8 text-justify mb-[9mm]">
