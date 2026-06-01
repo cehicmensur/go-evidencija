@@ -90,19 +90,7 @@ const odbijeno = odsustva.filter(
 
 const ukupnoZahtjeva = odsustva.length;
 
-const danas = new Date();
-
-const trenutnoNaOdsustvu = odsustva.filter((o) => {
-if (o.status !== "odobreno") return false;
-
-```
-const od = new Date(o.od);
-const doDatum = new Date(o.do);
-
-return danas >= od && danas <= doDatum;
-```
-
-}).length;
+const trenutnoNaOdsustvu = 0;
 
 return ( 
 <div> 
