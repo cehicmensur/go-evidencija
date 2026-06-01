@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import toast from "react-hot-toast";
 
 function Sidebar() {
@@ -7,42 +7,20 @@ function Sidebar() {
   const token = localStorage.getItem("token");
 
   const [pendingCount, setPendingCount] = useState(0);
+  const previousCount = useRef(null);
 
   useEffect(() => {
     if (korisnik?.uloga !== "admin") return;
 
-    let prviPut = true;
+   if (
+  previousCount.current !== null &&
+  count > previousCount.current
+) {
+  toast.success("🔔 Novi zahtjev za odsustvo zaprimljen");
+}
 
-    const ucitajPending = () => {
-      fetch("https://go-evidencija-backend.onrender.com/godisnji", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (!Array.isArray(data)) return;
-
-          const count = data.filter(
-            (z) => z.status === "na čekanju"
-          ).length;
-
-          if (!prviPut && count > pendingCount) {
-            toast.success("🔔 Novi zahtjev za odsustvo zaprimljen");
-          }
-
-          prviPut = false;
-          setPendingCount(count);
-        })
-        .catch(console.error);
-    };
-
-    ucitajPending();
-
-    const interval = setInterval(ucitajPending, 30000);
-
-    return () => clearInterval(interval);
-  }, [pendingCount]);
+previousCount.current = count;
+}, []);
 
   const logout = () => {
     localStorage.removeItem("korisnik");
