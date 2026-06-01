@@ -183,7 +183,7 @@ const naslov =
 
         <p className="text-[14px] leading-7 text-justify mb-[9mm]">
           Zaposleniku <strong>{podaci.zaposlenik?.ime}</strong>
-          odobrava se korištenje godišnjeg odmora u periodu od
+           odobrava se korištenje godišnjeg odmora u periodu od
           <strong> {formatDatum(podaci.od)}</strong> do
           <strong> {formatDatum(podaci.do)}</strong>, u ukupnom
           trajanju od <strong>{ukupnoDana}</strong> dana.
