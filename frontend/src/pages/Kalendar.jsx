@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
+import moment from "moment";
+import { Calendar, momentLocalizer } from "react-big-calendar";
+import "react-big-calendar/lib/css/react-big-calendar.css";
+
+const localizer = momentLocalizer(moment);
 
 function Kalendar() {
-  const [odsustva, setOdsustva] = useState([]);
+  const [events, setEvents] = useState([]);
   const [greska, setGreska] = useState("");
 
   const token = localStorage.getItem("token");
-
   const API_URL = "https://go-evidencija-backend.onrender.com";
 
   useEffect(() => {
@@ -16,27 +20,43 @@ function Kalendar() {
     })
       .then((res) => res.json())
       .then((data) => {
-        if (data.error) {
-          setGreska(data.error);
-          return;
-        }
+        if (!Array.isArray(data)) return;
 
-        setOdsustva(Array.isArray(data) ? data : []);
+        const kalendarDogadjaji = data.map((o) => ({
+          id: o.id,
+          title: `${o.zaposlenik?.ime || "Nepoznato"} (${o.status})`,
+          start: new Date(o.od),
+          end: new Date(o.do),
+          status: o.status,
+          allDay: true,
+        }));
+
+        setEvents(kalendarDogadjaji);
       })
       .catch(() => {
         setGreska("Greška kod učitavanja kalendara.");
       });
   }, []);
 
-  function formatDatum(datum) {
-    const d = new Date(datum);
+  const eventStyleGetter = (event) => {
+    let backgroundColor = "#eab308";
 
-    const dan = String(d.getDate()).padStart(2, "0");
-    const mjesec = String(d.getMonth() + 1).padStart(2, "0");
-    const godina = d.getFullYear();
+    if (event.status === "odobreno") {
+      backgroundColor = "#10b981";
+    }
 
-    return `${dan}.${mjesec}.${godina}.`;
-  }
+    if (event.status === "odbijeno") {
+      backgroundColor = "#ef4444";
+    }
+
+    return {
+      style: {
+        backgroundColor,
+        color: "white",
+        borderRadius: "6px",
+      },
+    };
+  };
 
   return (
     <div>
@@ -45,7 +65,7 @@ function Kalendar() {
       </h1>
 
       <p className="text-slate-500 mb-8">
-        Pregled svih evidentiranih odsustava
+        Pregled odsustava po mjesecima
       </p>
 
       {greska && (
@@ -54,77 +74,24 @@ function Kalendar() {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl shadow overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-slate-800 text-white">
-            <tr>
-              <th className="p-4 text-left">
-                Zaposlenik
-              </th>
-
-              <th className="p-4 text-left">
-                Vrsta odsustva
-              </th>
-
-              <th className="p-4 text-left">
-                Od
-              </th>
-
-              <th className="p-4 text-left">
-                Do
-              </th>
-
-              <th className="p-4 text-left">
-                Status
-              </th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {odsustva.map((o) => (
-              <tr
-                key={o.id}
-                className="border-b border-slate-200"
-              >
-                <td className="p-4">
-                  {o.zaposlenik?.ime}
-                </td>
-
-                <td className="p-4">
-                  {o.vrsta || "Godišnji odmor"}
-                </td>
-
-                <td className="p-4">
-                  {formatDatum(o.od)}
-                </td>
-
-                <td className="p-4">
-                  {formatDatum(o.do)}
-                </td>
-
-                <td className="p-4">
-                  <span
-                    className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                      o.status === "odobreno"
-                        ? "bg-emerald-100 text-emerald-700"
-                        : o.status === "odbijeno"
-                        ? "bg-red-100 text-red-700"
-                        : "bg-yellow-100 text-yellow-700"
-                    }`}
-                  >
-                    {o.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {odsustva.length === 0 && !greska && (
-          <div className="p-6 text-slate-500">
-            Nema evidentiranih odsustava.
-          </div>
-        )}
+      <div className="bg-white p-4 rounded-2xl shadow">
+        <Calendar
+          localizer={localizer}
+          events={events}
+          startAccessor="start"
+          endAccessor="end"
+          style={{ height: 700 }}
+          eventPropGetter={eventStyleGetter}
+          messages={{
+            next: "Sljedeći",
+            previous: "Prethodni",
+            today: "Danas",
+            month: "Mjesec",
+            week: "Sedmica",
+            day: "Dan",
+            agenda: "Agenda",
+          }}
+        />
       </div>
     </div>
   );

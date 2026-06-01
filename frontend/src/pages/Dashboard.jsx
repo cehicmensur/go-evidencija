@@ -10,7 +10,8 @@ function Dashboard() {
 
   const API_URL = "https://go-evidencija-backend.onrender.com";
 
-  useEffect(() => {
+useEffect(() => {
+  const ucitajPodatke = () => {
     fetch(`${API_URL}/godisnji`, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -48,7 +49,14 @@ function Dashboard() {
           setGreska("Greška kod učitavanja zaposlenika.");
         });
     }
-  }, []);
+  };
+
+  ucitajPodatke();
+
+  const interval = setInterval(ucitajPodatke, 30000);
+
+  return () => clearInterval(interval);
+}, []);
 
   const ukupnoZaposlenika = zaposlenici.length;
 
