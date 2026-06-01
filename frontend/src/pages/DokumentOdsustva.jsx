@@ -33,7 +33,8 @@ function DokumentOdsustva() {
 
   const ukupnoDana = brojDana(podaci.od, podaci.do);
 
- const jeGodisnji = podaci.vrsta === "Godišnji odmor";
+ const jeGodisnji =
+  podaci.vrsta?.toLowerCase().trim() === "godišnji odmor";
 
 const naslov =
   tip === "rjesenje"
