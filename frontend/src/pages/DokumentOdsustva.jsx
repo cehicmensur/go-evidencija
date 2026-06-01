@@ -240,7 +240,7 @@ const naslov =
             </div>
           </div>
 
-          <div className="absolute left-[28mm] bottom-[38mm] text-[14px] leading-6">
+          <div className="absolute left-[28mm] bottom-[38mm] text-[12px] leading-6">
             <p>Dostavljeno:</p>
             <p>- imenovanom</p>
             <p>- personalni dosje</p>
