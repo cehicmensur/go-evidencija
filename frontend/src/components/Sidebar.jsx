@@ -10,6 +10,7 @@ const token = localStorage.getItem("token");
 useEffect(() => {
   if (korisnik?.uloga !== "admin") return;
 
+  const ucitajPending = () => {
   fetch("https://go-evidencija-backend.onrender.com/godisnji", {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -26,7 +27,13 @@ useEffect(() => {
       setPendingCount(count);
     })
     .catch(console.error);
-}, []);
+};
+
+ucitajPending();
+
+const interval = setInterval(ucitajPending, 30000);
+
+return () => clearInterval(interval);
 
   const logout = () => {
     localStorage.removeItem("korisnik");

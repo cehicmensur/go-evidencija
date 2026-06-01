@@ -78,6 +78,7 @@ function Dashboard() {
   const odbijeno = odsustva.filter(
     (o) => o.status === "odbijeno"
   ).length;
+  const ukupnoZahtjeva = odsustva.length;
 
   return (
     <div>
@@ -164,6 +165,15 @@ function Dashboard() {
         </div>
       </div>
 
+<div className="bg-white rounded-2xl shadow p-6">
+  <p className="text-slate-500 mb-2">
+    Ukupno zahtjeva
+  </p>
+
+  <h2 className="text-5xl font-bold text-slate-800">
+    {ukupnoZahtjeva}
+  </h2>
+</div>
       <div className="bg-white rounded-2xl shadow p-6">
         <h2 className="text-2xl font-bold mb-4">
           Zadnja odsustva
