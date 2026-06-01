@@ -1,40 +1,48 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 function Sidebar() {
   const korisnik = JSON.parse(localStorage.getItem("korisnik"));
+  const token = localStorage.getItem("token");
+
   const [pendingCount, setPendingCount] = useState(0);
 
-const token = localStorage.getItem("token");
+  useEffect(() => {
+    if (korisnik?.uloga !== "admin") return;
 
-useEffect(() => {
-  if (korisnik?.uloga !== "admin") return;
+    let prviPut = true;
 
-  const ucitajPending = () => {
-  fetch("https://go-evidencija-backend.onrender.com/godisnji", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
-    .then((res) => res.json())
-    .then((data) => {
-      if (!Array.isArray(data)) return;
+    const ucitajPending = () => {
+      fetch("https://go-evidencija-backend.onrender.com/godisnji", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (!Array.isArray(data)) return;
 
-      const count = data.filter(
-        (z) => z.status === "na čekanju"
-      ).length;
+          const count = data.filter(
+            (z) => z.status === "na čekanju"
+          ).length;
 
-      setPendingCount(count);
-    })
-    .catch(console.error);
-};
+          if (!prviPut && count > pendingCount) {
+            toast.success("🔔 Novi zahtjev za odsustvo zaprimljen");
+          }
 
-ucitajPending();
+          prviPut = false;
+          setPendingCount(count);
+        })
+        .catch(console.error);
+    };
 
-const interval = setInterval(ucitajPending, 30000);
+    ucitajPending();
 
-return () => clearInterval(interval);
-}, []);
+    const interval = setInterval(ucitajPending, 30000);
+
+    return () => clearInterval(interval);
+  }, [pendingCount]);
 
   const logout = () => {
     localStorage.removeItem("korisnik");
@@ -59,26 +67,29 @@ return () => clearInterval(interval);
               Zaposlenici
             </Link>
           )}
-{korisnik?.uloga === "admin" && (
-  <Link to="/korisnici" className="hover:text-slate-300">
-    Korisnici
-  </Link>
-)}
-         <Link
-  to="/godisnji"
-  className="hover:text-slate-300 flex items-center justify-between"
->
-  <span>Odsustva</span>
 
-  {korisnik?.uloga === "admin" && pendingCount > 0 && (
-    <span className="bg-red-600 text-white text-xs px-2 py-1 rounded-full">
-      {pendingCount}
-    </span>
-  )}
-</Link>
+          {korisnik?.uloga === "admin" && (
+            <Link to="/korisnici" className="hover:text-slate-300">
+              Korisnici
+            </Link>
+          )}
+
+          <Link
+            to="/godisnji"
+            className="hover:text-slate-300 flex items-center justify-between"
+          >
+            <span>Odsustva</span>
+
+            {korisnik?.uloga === "admin" && pendingCount > 0 && (
+              <span className="bg-red-600 text-white text-xs px-2 py-1 rounded-full">
+                {pendingCount}
+              </span>
+            )}
+          </Link>
+
           <Link to="/kalendar" className="hover:text-slate-300">
-  Kalendar
-</Link>
+            Kalendar
+          </Link>
         </div>
       </div>
 
