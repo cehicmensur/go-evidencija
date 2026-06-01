@@ -22,14 +22,16 @@ function Kalendar() {
       .then((data) => {
         if (!Array.isArray(data)) return;
 
-        const kalendarDogadjaji = data.map((o) => ({
-          id: o.id,
-          title: `${o.zaposlenik?.ime || "Nepoznato"} (${o.status})`,
-          start: new Date(o.od),
-          end: new Date(o.do),
-          status: o.status,
-          allDay: true,
-        }));
+const kalendarDogadjaji = data.map((o) => ({
+  id: o.id,
+  title: o.zaposlenik?.ime || "Nepoznato",
+  start: new Date(o.od),
+  end: new Date(o.do),
+  status: o.status,
+  vrsta: o.vrsta,
+  napomena: o.napomena,
+  allDay: true,
+}));
 
         setEvents(kalendarDogadjaji);
       })
@@ -75,6 +77,22 @@ function Kalendar() {
       )}
 
       <div className="bg-white p-4 rounded-2xl shadow">
+        <div className="flex gap-6 mb-4 text-sm font-medium">
+  <div className="flex items-center gap-2">
+    <div className="w-4 h-4 rounded bg-green-500"></div>
+    <span>Odobreno</span>
+  </div>
+
+  <div className="flex items-center gap-2">
+    <div className="w-4 h-4 rounded bg-yellow-500"></div>
+    <span>Na čekanju</span>
+  </div>
+
+  <div className="flex items-center gap-2">
+    <div className="w-4 h-4 rounded bg-red-500"></div>
+    <span>Odbijeno</span>
+  </div>
+</div>
         <Calendar
           localizer={localizer}
           events={events}
