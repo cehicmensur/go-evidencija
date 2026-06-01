@@ -90,7 +90,24 @@ const odbijeno = odsustva.filter(
 
 const ukupnoZahtjeva = odsustva.length;
 
-const trenutnoNaOdsustvu = 0;
+const danas = new Date();
+
+const trenutnoNaOdsustvu = odsustva.filter((o) => {
+  if (!o) return false;
+
+  if (o.status !== "odobreno") return false;
+
+  if (!o.od || !o.do) return false;
+
+  const od = new Date(o.od);
+  const doDatum = new Date(o.do);
+
+  if (isNaN(od.getTime()) || isNaN(doDatum.getTime())) {
+    return false;
+  }
+
+  return danas >= od && danas <= doDatum;
+}).length;
 
 return ( 
 <div> 
