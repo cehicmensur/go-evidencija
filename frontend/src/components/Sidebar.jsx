@@ -1,7 +1,32 @@
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 function Sidebar() {
   const korisnik = JSON.parse(localStorage.getItem("korisnik"));
+  const [pendingCount, setPendingCount] = useState(0);
+
+const token = localStorage.getItem("token");
+
+useEffect(() => {
+  if (korisnik?.uloga !== "admin") return;
+
+  fetch("https://go-evidencija-backend.onrender.com/godisnji", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (!Array.isArray(data)) return;
+
+      const count = data.filter(
+        (z) => z.status === "na čekanju"
+      ).length;
+
+      setPendingCount(count);
+    })
+    .catch(console.error);
+}, []);
 
   const logout = () => {
     localStorage.removeItem("korisnik");
@@ -31,9 +56,18 @@ function Sidebar() {
     Korisnici
   </Link>
 )}
-          <Link to="/godisnji" className="hover:text-slate-300">
-            Odsustva
-          </Link>
+         <Link
+  to="/godisnji"
+  className="hover:text-slate-300 flex items-center justify-between"
+>
+  <span>Odsustva</span>
+
+  {korisnik?.uloga === "admin" && pendingCount > 0 && (
+    <span className="bg-red-600 text-white text-xs px-2 py-1 rounded-full">
+      {pendingCount}
+    </span>
+  )}
+</Link>
           <Link to="/kalendar" className="hover:text-slate-300">
   Kalendar
 </Link>
