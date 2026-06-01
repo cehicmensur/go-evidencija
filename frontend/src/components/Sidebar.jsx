@@ -34,6 +34,7 @@ ucitajPending();
 const interval = setInterval(ucitajPending, 30000);
 
 return () => clearInterval(interval);
+}, []);
 
   const logout = () => {
     localStorage.removeItem("korisnik");
