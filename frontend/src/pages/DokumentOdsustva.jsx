@@ -224,11 +224,13 @@ const naslov =
             </p>
           )}
 
-          <p className="text-[17px] leading-8 text-justify mb-[18mm]">
-            Ovo {tip === "rjesenje" ? "rješenje" : "odobrenje"} izdaje se na
-            osnovu podnesenog zahtjeva i služi za potrebe evidencije odsustava
-            zaposlenika Medžlisa Islamske zajednice Bihać.
-          </p>
+          {!jeGodisnji && (
+  <p className="text-[17px] leading-8 text-justify mb-[18mm]">
+    Ovo {tip === "rjesenje" ? "rješenje" : "odobrenje"} izdaje se na
+    osnovu podnesenog zahtjeva i služi za potrebe evidencije odsustava
+    zaposlenika Medžlisa Islamske zajednice Bihać.
+  </p>
+)}
 
           <div className="flex justify-end mt-[10mm]">
             <div className="text-center text-[16px] w-[75mm]">
