@@ -128,7 +128,7 @@ const naslov =
           className="absolute inset-0 w-full h-full object-cover"
         />
 
-        <div className="relative z-10 px-[28mm] pt-[78mm] pb-[35mm] text-black font-serif">
+        <div className="relative z-10 px-[28mm] pt-[65mm] pb-[35mm] text-black font-serif">
           <div className="flex justify-between text-[15px] mb-[22mm]">
             <p>
               Broj: <strong>{broj || "____________"}</strong>
@@ -139,7 +139,7 @@ const naslov =
             </p>
           </div>
 
-          <h1 className="text-center text-[24px] font-bold mb-[18mm] tracking-wide">
+          <h1 className="text-center text-[18px] font-bold mb-[18mm] tracking-wide">
             {naslov}
           </h1>
 
@@ -147,14 +147,14 @@ const naslov =
   <>
     {tip === "odobrenje" ? (
       <>
-        <p className="text-[17px] leading-8 text-justify mb-[9mm]">
+        <p className="text-[14px] leading-7 text-justify mb-[9mm]">
           Na osnovu člana 14. Pravilnika o službi u Islamskoj zajednici u
           Bosni i Hercegovini, a povodom podnesenog zahtjeva zaposlenika
           <strong> {podaci.zaposlenik?.ime}</strong>, daje se
           odobrenje za korištenje godišnjeg odmora.
         </p>
 
-        <p className="text-[17px] leading-8 text-justify mb-[9mm]">
+        <p className="text-[14px] leading-7 text-justify mb-[9mm]">
           Zaposleniku <strong>{podaci.zaposlenik?.ime}</strong>
           odobrava se korištenje godišnjeg odmora u periodu od
           <strong> {formatDatum(podaci.od)}</strong> do
@@ -162,14 +162,14 @@ const naslov =
           trajanju od <strong>{ukupnoDana}</strong> dana.
         </p>
 
-        <p className="text-[17px] leading-8 text-justify mb-[9mm]">
+        <p className="text-[14px] leading-7 text-justify mb-[9mm]">
           Zaposlenik je dužan vratiti se na rad prvog narednog radnog
           dana po isteku odobrenog godišnjeg odmora.
         </p>
       </>
     ) : (
       <>
-        <p className="text-[17px] leading-8 text-justify mb-[9mm]">
+        <p className="text-[14px] leading-7 text-justify mb-[9mm]">
           Na osnovu člana 48. Pravilnika o organizaciji i radu medžlisa i
           džemata Islamske zajednice u Bosni i Hercegovini, a u vezi sa
           članom 14. Pravilnika o službi u Islamskoj zajednici u Bosni i
@@ -181,7 +181,7 @@ const naslov =
           R J E Š E N J E
         </p>
 
-        <p className="text-[17px] leading-8 text-justify mb-[9mm]">
+        <p className="text-[14px] leading-7 text-justify mb-[9mm]">
           Zaposleniku <strong>{podaci.zaposlenik?.ime}</strong>
           odobrava se korištenje godišnjeg odmora u periodu od
           <strong> {formatDatum(podaci.od)}</strong> do
@@ -189,13 +189,13 @@ const naslov =
           trajanju od <strong>{ukupnoDana}</strong> dana.
         </p>
 
-        <p className="text-[17px] leading-8 text-justify mb-[9mm]">
+        <p className="text-[14px] leading-7 text-justify mb-[9mm]">
           Za vrijeme korištenja godišnjeg odmora zaposleniku pripadaju
           sva prava iz radnog odnosa u skladu sa važećim propisima
           Islamske zajednice u Bosni i Hercegovini.
         </p>
 
-        <p className="text-[17px] leading-8 text-justify mb-[9mm]">
+        <p className="text-[14px] leading-7 text-justify mb-[9mm]">
           Ovo rješenje stupa na snagu danom donošenja.
         </p>
       </>
@@ -203,13 +203,13 @@ const naslov =
   </>
 ) : (
   <>
-    <p className="text-[17px] leading-8 text-justify mb-[9mm]">
+    <p className="text-[14px] leading-7 text-justify mb-[9mm]">
       Zaposleniku <strong>{podaci.zaposlenik?.ime}</strong>,
       odobrava se korištenje odsustva po osnovu
       <strong> {podaci.vrsta}</strong>.
     </p>
 
-    <p className="text-[17px] leading-8 text-justify mb-[9mm]">
+    <p className="text-[14px] leading-7 text-justify mb-[9mm]">
       Odsustvo se odobrava u periodu od
       <strong> {formatDatum(podaci.od)}</strong> do
       <strong> {formatDatum(podaci.do)}</strong>, u ukupnom trajanju od
@@ -219,13 +219,13 @@ const naslov =
 )}
 
           {podaci.napomena && (
-            <p className="text-[17px] leading-8 text-justify mb-[9mm]">
+            <p className="text-[14px] leading-7 text-justify mb-[9mm]">
               Napomena: {podaci.napomena}
             </p>
           )}
 
           {!jeGodisnji && (
-  <p className="text-[17px] leading-8 text-justify mb-[18mm]">
+  <p className="text-[14px] leading-7 text-justify mb-[18mm]">
     Ovo {tip === "rjesenje" ? "rješenje" : "odobrenje"} izdaje se na
     osnovu podnesenog zahtjeva i služi za potrebe evidencije odsustava
     zaposlenika Medžlisa Islamske zajednice Bihać.
