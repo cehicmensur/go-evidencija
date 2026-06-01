@@ -16,7 +16,7 @@ function Sidebar() {
   previousCount.current !== null &&
   count > previousCount.current
 ) {
-  toast.success("🔔 Novi zahtjev za odsustvo zaprimljen");
+alert("Novi zahtjev za odsustvo");
 }
 
 previousCount.current = count;
