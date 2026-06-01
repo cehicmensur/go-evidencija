@@ -3,92 +3,124 @@ import { useEffect, useState, useRef } from "react";
 import toast from "react-hot-toast";
 
 function Sidebar() {
-  const korisnik = JSON.parse(localStorage.getItem("korisnik"));
-  const token = localStorage.getItem("token");
+const korisnik = JSON.parse(localStorage.getItem("korisnik"));
+const token = localStorage.getItem("token");
 
-  const [pendingCount, setPendingCount] = useState(0);
-  const previousCount = useRef(null);
+const [pendingCount, setPendingCount] = useState(0);
+const previousCount = useRef(null);
 
-  useEffect(() => {
-    if (korisnik?.uloga !== "admin") return;
+useEffect(() => {
+if (korisnik?.uloga !== "admin") return;
 
-   if (
-  previousCount.current !== null &&
-  count > previousCount.current
-) {
-alert("Novi zahtjev za odsustvo");
-}
+```
+const ucitajPending = async () => {
+  try {
+    const res = await fetch(
+      "https://go-evidencija-backend.onrender.com/godisnji",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
-previousCount.current = count;
-}, []);
+    const data = await res.json();
 
-  const logout = () => {
-    localStorage.removeItem("korisnik");
-    localStorage.removeItem("token");
-    window.location.href = "/";
-  };
+    if (!Array.isArray(data)) return;
 
-  return (
-    <div className="w-64 bg-slate-800 text-white p-6 min-h-screen flex flex-col justify-between">
-      <div>
-        <h1 className="text-2xl font-bold mb-10">
-          GO Sistem
-        </h1>
+    const count = data.filter(
+      (z) => z.status === "na čekanju"
+    ).length;
 
-        <div className="flex flex-col gap-4">
-          <Link to="/" className="hover:text-slate-300">
-            Dashboard
-          </Link>
+    if (
+      previousCount.current !== null &&
+      count > previousCount.current
+    ) {
+      toast.success("🔔 Novi zahtjev za odsustvo zaprimljen");
+    }
 
-          {korisnik?.uloga === "admin" && (
-            <Link to="/zaposlenici" className="hover:text-slate-300">
-              Zaposlenici
-            </Link>
-          )}
+    previousCount.current = count;
+    setPendingCount(count);
+  } catch (error) {
+    console.error(error);
+  }
+};
 
-          {korisnik?.uloga === "admin" && (
-            <Link to="/korisnici" className="hover:text-slate-300">
-              Korisnici
-            </Link>
-          )}
+ucitajPending();
 
-          <Link
-            to="/godisnji"
-            className="hover:text-slate-300 flex items-center justify-between"
-          >
-            <span>Odsustva</span>
+const interval = setInterval(ucitajPending, 30000);
 
-            {korisnik?.uloga === "admin" && pendingCount > 0 && (
-              <span className="bg-red-600 text-white text-xs px-2 py-1 rounded-full">
-                {pendingCount}
-              </span>
-            )}
-          </Link>
+return () => clearInterval(interval);
+```
 
-          <Link to="/kalendar" className="hover:text-slate-300">
-            Kalendar
-          </Link>
-        </div>
-      </div>
+}, [korisnik?.uloga, token]);
 
-      <div className="border-t border-slate-600 pt-4">
-        <p className="text-sm text-slate-300">
-          {korisnik?.ime || "Korisnik"}
-        </p>
+const logout = () => {
+localStorage.removeItem("korisnik");
+localStorage.removeItem("token");
+window.location.href = "/";
+};
 
-        <p className="text-xs text-slate-400 mb-3">
-          Uloga: {korisnik?.uloga || "nepoznato"}
-        </p>
+return ( <div className="w-64 bg-slate-800 text-white p-6 min-h-screen flex flex-col justify-between"> <div> <h1 className="text-2xl font-bold mb-10">
+GO Sistem </h1>
 
-        <button
-          onClick={logout}
-          className="w-full bg-red-600 hover:bg-red-500 text-white py-2 rounded-lg"
-        >
-          Odjava
-        </button>
-      </div>
+```
+    <div className="flex flex-col gap-4">
+      <Link to="/" className="hover:text-slate-300">
+        Dashboard
+      </Link>
+
+      {korisnik?.uloga === "admin" && (
+        <Link to="/zaposlenici" className="hover:text-slate-300">
+          Zaposlenici
+        </Link>
+      )}
+
+      {korisnik?.uloga === "admin" && (
+        <Link to="/korisnici" className="hover:text-slate-300">
+          Korisnici
+        </Link>
+      )}
+
+      <Link
+        to="/godisnji"
+        className="hover:text-slate-300 flex items-center justify-between"
+      >
+        <span>Odsustva</span>
+
+        {korisnik?.uloga === "admin" && pendingCount > 0 && (
+          <span className="bg-red-600 text-white text-xs px-2 py-1 rounded-full">
+            {pendingCount}
+          </span>
+        )}
+      </Link>
+
+      <Link to="/kalendar" className="hover:text-slate-300">
+        Kalendar
+      </Link>
     </div>
-  );
+  </div>
+
+  <div className="border-t border-slate-600 pt-4">
+    <p className="text-sm text-slate-300">
+      {korisnik?.ime || "Korisnik"}
+    </p>
+
+    <p className="text-xs text-slate-400 mb-3">
+      Uloga: {korisnik?.uloga || "nepoznato"}
+    </p>
+
+    <button
+      onClick={logout}
+      className="w-full bg-red-600 hover:bg-red-500 text-white py-2 rounded-lg"
+    >
+      Odjava
+    </button>
+  </div>
+</div>
+```
+
+);
 }
 
 export default Sidebar;
