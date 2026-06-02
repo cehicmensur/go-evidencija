@@ -7,6 +7,7 @@ import Godisnji from "./pages/Godisnji";
 import Korisnici from "./pages/Korisnici";
 import DokumentOdsustva from "./pages/DokumentOdsustva";
 import Kalendar from "./pages/Kalendar";
+import NeradniDani from "./pages/NeradniDani";
 
 import Sidebar from "./components/Sidebar";
 
@@ -52,6 +53,16 @@ function App() {
             <Route path="/godisnji" element={<Godisnji />} />
 
             <Route path="/kalendar" element={<Kalendar />} />
+            <Route
+  path="/neradni-dani"
+  element={
+    korisnik?.uloga === "admin" ? (
+      <NeradniDani />
+    ) : (
+      <Navigate to="/" />
+    )
+  }
+/>
 
             <Route
               path="/dokument-odsustva"

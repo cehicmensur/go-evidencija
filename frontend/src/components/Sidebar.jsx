@@ -98,6 +98,16 @@ function Sidebar() {
           <Link to="/kalendar" className="hover:text-slate-300">
             Kalendar
           </Link>
+          {korisnik?.uloga === "admin" && (
+
+  <Link
+    to="/neradni-dani"
+    className="hover:text-slate-300"
+  >
+    Neradni dani
+  </Link>
+)}
+
         </div>
       </div>
 
