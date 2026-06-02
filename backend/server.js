@@ -59,10 +59,28 @@ function izracunajGodisnji(datum) {
 }
 
 function brojDana(od, doDatuma) {
-  const start = new Date(od);
-  const end = new Date(doDatuma);
+const start = new Date(od);
+const end = new Date(doDatuma);
 
-  return Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+let broj = 0;
+
+const trenutni = new Date(start);
+
+while (trenutni <= end) {
+const danUSedmici = trenutni.getDay();
+
+```
+// 0 = nedjelja, 6 = subota
+if (danUSedmici !== 0 && danUSedmici !== 6) {
+  broj++;
+}
+
+trenutni.setDate(trenutni.getDate() + 1);
+```
+
+}
+
+return broj;
 }
 
 app.get("/", (req, res) => {
