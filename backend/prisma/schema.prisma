@@ -8,44 +8,45 @@ datasource db {
 }
 
 model Zaposlenik {
-  id        Int    @id @default(autoincrement())
-  ime       String
-  pozicija  String
-  godisnji  Int
-
-  odmori    GodisnjiOdmor[]
-  korisnik  Korisnik?
+  id       Int             @id @default(autoincrement())
+  ime      String
+  pozicija String
+  godisnji Int
+  odmori   GodisnjiOdmor[]
+  korisnik Korisnik?
 }
 
 model GodisnjiOdmor {
-  id                  Int      @id @default(autoincrement())
+  id                  Int        @id @default(autoincrement())
   zaposlenikId        Int
-  vrsta               String   @default("Godišnji odmor")
   od                  DateTime
   do                  DateTime
-  status              String   @default("na čekanju")
+  status              String     @default("na čekanju")
   napomena            String?
-  odbijaSeOdGodisnjeg Boolean  @default(true)
-
+  odbijaSeOdGodisnjeg Boolean    @default(true)
+  vrsta               String     @default("Godišnji odmor")
   zaposlenik          Zaposlenik @relation(fields: [zaposlenikId], references: [id])
 }
 
 model Korisnik {
-  id           Int     @id @default(autoincrement())
+  id           Int         @id @default(autoincrement())
   ime          String
-  email        String  @unique
+  email        String      @unique
   lozinka      String
-  uloga        String  @default("zaposlenik")
-  odobren      Boolean @default(false)
-
-  zaposlenikId Int?   @unique
+  uloga        String      @default("zaposlenik")
+  zaposlenikId Int?        @unique
+  odobren      Boolean     @default(false)
   zaposlenik   Zaposlenik? @relation(fields: [zaposlenikId], references: [id])
 }
 
-model AuditLog {
-  id        Int      @id @default(autoincrement())
-  korisnik  String
-  akcija    String
-  detalji   String?
-  createdAt DateTime @default(now())
+model playing_with_neon {
+  id    Int    @id @default(autoincrement())
+  name  String
+  value Float? @db.Real
+}
+
+model NeradniDan {
+  id     Int      @id @default(autoincrement())
+  naziv  String
+  datum  DateTime
 }

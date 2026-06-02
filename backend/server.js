@@ -499,6 +499,76 @@ app.delete("/godisnji/:id", provjeriToken, async (req, res) => {
     res.status(500).json({ error: "Greška kod brisanja odsustva" });
   }
 });
+/* NERADNI DANI */
+
+app.get("/neradni-dani", provjeriToken, async (req, res) => {
+try {
+const dani = await prisma.neradniDan.findMany({
+orderBy: {
+datum: "asc",
+},
+});
+
+```
+res.json(dani);
+```
+
+} catch (error) {
+console.error(error);
+res.status(500).json({
+error: "Greška kod učitavanja neradnih dana",
+});
+}
+});
+
+app.post("/neradni-dani", provjeriToken, samoAdmin, async (req, res) => {
+try {
+const { naziv, datum } = req.body;
+
+```
+const noviDan = await prisma.neradniDan.create({
+  data: {
+    naziv,
+    datum: new Date(datum),
+  },
+});
+
+res.json(noviDan);
+} catch (error) {
+console.error(error);
+res.status(500).json({
+error: "Greška kod dodavanja neradnog dana",
+});
+}
+});
+
+app.delete(
+"/neradni-dani/:id",
+provjeriToken,
+samoAdmin,
+async (req, res) => {
+try {
+const { id } = req.params;
+
+```
+  await prisma.neradniDan.delete({
+    where: {
+      id: Number(id),
+    },
+  });
+
+  res.json({
+    message: "Neradni dan obrisan",
+  });
+} catch (error) {
+  console.error(error);
+  res.status(500).json({
+    error: "Greška kod brisanja neradnog dana",
+  });
+}
+
+}
+);
 
 const PORT = process.env.PORT || 3000;
 
