@@ -181,14 +181,6 @@ function Godisnji() {
     );
   }
 };
-
-    trenutni.setDate(
-      trenutni.getDate() + 1
-    );
-  }
-
-  return broj;
-
   const filtriraniZahtjevi = useMemo(() => {
     return zahtjevi.filter((z) => {
       const matchStatus =
@@ -459,5 +451,6 @@ function Godisnji() {
       </div>
     </div>
   );
+}
 
 export default Godisnji;
