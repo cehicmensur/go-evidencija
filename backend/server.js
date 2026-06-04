@@ -509,9 +509,7 @@ datum: "asc",
 },
 });
 
-```
 res.json(dani);
-```
 
 } catch (error) {
 console.error(error);
@@ -525,7 +523,6 @@ app.post("/neradni-dani", provjeriToken, samoAdmin, async (req, res) => {
 try {
 const { naziv, datum } = req.body;
 
-```
 const noviDan = await prisma.neradniDan.create({
   data: {
     naziv,
@@ -543,35 +540,27 @@ error: "Greška kod dodavanja neradnog dana",
 });
 
 app.delete(
-"/neradni-dani/:id",
-provjeriToken,
-samoAdmin,
-async (req, res) => {
-try {
-const { id } = req.params;
+  "/neradni-dani/:id",
+  provjeriToken,
+  samoAdmin,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
 
-```
-  await prisma.neradniDan.delete({
-    where: {
-      id: Number(id),
-    },
-  });
+      await prisma.neradniDan.delete({
+        where: {
+          id: Number(id),
+        },
+      });
 
-  res.json({
-    message: "Neradni dan obrisan",
-  });
-} catch (error) {
-  console.error(error);
-  res.status(500).json({
-    error: "Greška kod brisanja neradnog dana",
-  });
-}
-
-}
+      res.json({
+        message: "Neradni dan obrisan",
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        error: "Greška kod brisanja neradnog dana",
+      });
+    }
+  }
 );
-
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log(`Server radi na portu ${PORT}`);
-});
