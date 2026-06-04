@@ -9,22 +9,48 @@ function formatDatum(datum) {
   return `${dan}.${mjesec}.${godina}.`;
 }
 
-function brojDana(od, doDatuma) {
+function brojDana(
+  od,
+  doDatuma,
+  neradniDani = []
+) {
   const start = new Date(od);
   const end = new Date(doDatuma);
+
+  const praznici = neradniDani.map(
+    (d) =>
+      new Date(d.datum)
+        .toISOString()
+        .split("T")[0]
+  );
 
   let broj = 0;
 
   const trenutni = new Date(start);
 
   while (trenutni <= end) {
-    const danUSedmici = trenutni.getDay();
+    const danUSedmici =
+      trenutni.getDay();
 
-    if (danUSedmici !== 0 && danUSedmici !== 6) {
+    const datumString =
+      trenutni
+        .toISOString()
+        .split("T")[0];
+
+    const vikend =
+      danUSedmici === 0 ||
+      danUSedmici === 6;
+
+    const praznik =
+      praznici.includes(datumString);
+
+    if (!vikend && !praznik) {
       broj++;
     }
 
-    trenutni.setDate(trenutni.getDate() + 1);
+    trenutni.setDate(
+      trenutni.getDate() + 1
+    );
   }
 
   return broj;
