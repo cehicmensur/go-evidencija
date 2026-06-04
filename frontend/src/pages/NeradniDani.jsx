@@ -16,20 +16,19 @@ function NeradniDani() {
       },
     })
       .then((res) => res.json())
-      console.log(data);
-      then((data) => {
-
+      .then((data) => {
         if (data.error) {
           setGreska(data.error);
           return;
         }
 
         setDani(Array.isArray(data) ? data : []);
+        setGreska("");
       })
       .catch((error) => {
-  console.log(error);
-  setGreska("Greška kod učitavanja neradnih dana.");
-});
+        console.error(error);
+        setGreska("Greška kod učitavanja neradnih dana.");
+      });
   };
 
   useEffect(() => {
@@ -52,11 +51,16 @@ function NeradniDani() {
         naziv,
         datum,
       }),
-    }).then(() => {
-      setNaziv("");
-      setDatum("");
-      ucitaj();
-    });
+    })
+      .then((res) => res.json())
+      .then(() => {
+        setNaziv("");
+        setDatum("");
+        ucitaj();
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   };
 
   const obrisi = (id) => {
@@ -67,7 +71,11 @@ function NeradniDani() {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    }).then(() => ucitaj());
+    })
+      .then(() => ucitaj())
+      .catch((error) => {
+        console.error(error);
+      });
   };
 
   return (
@@ -119,11 +127,9 @@ function NeradniDani() {
             {dani.map((d) => (
               <tr key={d.id} className="border-b">
                 <td className="p-3">{d.naziv}</td>
-
                 <td className="p-3">
                   {new Date(d.datum).toLocaleDateString("bs-BA")}
                 </td>
-
                 <td className="p-3">
                   <button
                     onClick={() => obrisi(d.id)}
@@ -137,7 +143,7 @@ function NeradniDani() {
           </tbody>
         </table>
 
-        {dani.length === 0 && (
+        {dani.length === 0 && !greska && (
           <div className="p-6 text-slate-500">
             Nema evidentiranih neradnih dana.
           </div>
