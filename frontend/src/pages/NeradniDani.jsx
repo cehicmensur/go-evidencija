@@ -16,7 +16,9 @@ function NeradniDani() {
       },
     })
       .then((res) => res.json())
-      .then((data) => {
+      console.log(data);
+      then((data) => {
+
         if (data.error) {
           setGreska(data.error);
           return;
@@ -24,9 +26,10 @@ function NeradniDani() {
 
         setDani(Array.isArray(data) ? data : []);
       })
-      .catch(() => {
-        setGreska("Greška kod učitavanja neradnih dana.");
-      });
+      .catch((error) => {
+  console.log(error);
+  setGreska("Greška kod učitavanja neradnih dana.");
+});
   };
 
   useEffect(() => {
