@@ -58,9 +58,15 @@ function izracunajGodisnji(datum) {
   return 30;
 }
 
-function brojDana(od, doDatuma) {
+async function brojDana(od, doDatuma) {
   const start = new Date(od);
   const end = new Date(doDatuma);
+
+  const neradniDani = await prisma.neradniDan.findMany();
+
+  const praznici = neradniDani.map((d) =>
+    new Date(d.datum).toISOString().split("T")[0]
+  );
 
   let broj = 0;
 
@@ -69,11 +75,22 @@ function brojDana(od, doDatuma) {
   while (trenutni <= end) {
     const danUSedmici = trenutni.getDay();
 
-    if (danUSedmici !== 0 && danUSedmici !== 6) {
+    const datumString = trenutni.toISOString().split("T")[0];
+
+    const vikend =
+      danUSedmici === 0 ||
+      danUSedmici === 6;
+
+    const praznik =
+      praznici.includes(datumString);
+
+    if (!vikend && !praznik) {
       broj++;
     }
 
-    trenutni.setDate(trenutni.getDate() + 1);
+    trenutni.setDate(
+      trenutni.getDate() + 1
+    );
   }
 
   return broj;
@@ -323,36 +340,57 @@ if (Number(id) === Number(req.korisnik.id)) {
 );
 
 /* ZAPOSLENICI */
-app.get("/zaposlenici", provjeriToken, samoAdmin, async (req, res) => {
-  try {
-    const zaposlenici = await prisma.zaposlenik.findMany({
-      include: { odmori: true },
-      orderBy: { id: "asc" },
-    });
+app.get(
+  "/zaposlenici",
+  provjeriToken,
+  samoAdmin,
+  async (req, res) => {
+    try {
+      const zaposlenici =
+        await prisma.zaposlenik.findMany({
+          include: { odmori: true },
+          orderBy: { id: "asc" },
+        });
 
-    const rezultat = zaposlenici.map((z) => {
-      const iskoristeno = z.odmori
-        .filter(
-          (o) => o.status === "odobreno" && o.vrsta === "Godišnji odmor"
-        )
-        .reduce((sum, o) => sum + brojDana(o.od, o.do), 0);
+      const rezultat =
+        await Promise.all(
+          zaposlenici.map(async (z) => {
+            let iskoristeno = 0;
 
-      return {
-        id: z.id,
-        ime: z.ime,
-        pozicija: z.pozicija,
-        godisnji: z.godisnji,
-        iskoristeno,
-        preostalo: z.godisnji - iskoristeno,
-      };
-    });
+            for (const o of z.odmori) {
+              if (
+                o.status === "odobreno" &&
+                o.vrsta === "Godišnji odmor"
+              ) {
+                iskoristeno += await brojDana(
+                  o.od,
+                  o.do
+                );
+              }
+            }
 
-    res.json(rezultat);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Greška kod učitavanja zaposlenika" });
+            return {
+              id: z.id,
+              ime: z.ime,
+              pozicija: z.pozicija,
+              godisnji: z.godisnji,
+              iskoristeno,
+              preostalo:
+                z.godisnji - iskoristeno,
+            };
+          })
+        );
+
+      res.json(rezultat);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        error:
+          "Greška kod učitavanja zaposlenika",
+      });
+    }
   }
-});
+);
 
 app.post("/zaposlenici", provjeriToken, samoAdmin, async (req, res) => {
   try {
