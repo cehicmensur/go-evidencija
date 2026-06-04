@@ -142,16 +142,52 @@ function Godisnji() {
     }).then(() => ucitajZahtjeve());
   };
 
-  const otvoriDokument = (odsustvo, tip) => {
-    localStorage.setItem(
-      "dokumentOdsustva",
-      JSON.stringify(odsustvo)
+  function brojDana(
+  od,
+  doDatuma,
+  neradniDani = []
+) {
+  const start = new Date(od);
+  const end = new Date(doDatuma);
+
+  const praznici = neradniDani.map(
+    (d) =>
+      new Date(d.datum)
+        .toISOString()
+        .split("T")[0]
+  );
+
+  let broj = 0;
+
+  const trenutni = new Date(start);
+
+  while (trenutni <= end) {
+    const danUSedmici =
+      trenutni.getDay();
+
+    const datumString =
+      trenutni
+        .toISOString()
+        .split("T")[0];
+
+    const vikend =
+      danUSedmici === 0 ||
+      danUSedmici === 6;
+
+    const praznik =
+      praznici.includes(datumString);
+
+    if (!vikend && !praznik) {
+      broj++;
+    }
+
+    trenutni.setDate(
+      trenutni.getDate() + 1
     );
+  }
 
-    localStorage.setItem("tipDokumenta", tip);
-
-    window.open("/dokument-odsustva", "_blank");
-  };
+  return broj;
+}
 
   const filtriraniZahtjevi = useMemo(() => {
     return zahtjevi.filter((z) => {

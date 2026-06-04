@@ -45,7 +45,15 @@ function DokumentOdsustva() {
     );
   }
 
-  const ukupnoDana = brojDana(podaci.od, podaci.do);
+  const neradniDani = JSON.parse(
+  localStorage.getItem("neradniDani") || "[]"
+);
+
+ const ukupnoDana = brojDana(
+  podaci.od,
+  podaci.do,
+  neradniDani
+);
 
  const jeGodisnji =
   podaci.vrsta?.toLowerCase().trim() === "godišnji odmor";
