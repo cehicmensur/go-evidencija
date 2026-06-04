@@ -142,44 +142,45 @@ function Godisnji() {
     }).then(() => ucitajZahtjeve());
   };
 
-  function brojDana(
-  od,
-  doDatuma,
-  neradniDani = []
-) {
-  const start = new Date(od);
-  const end = new Date(doDatuma);
+ const otvoriDokument = async (odsustvo, tip) => {
+  try {
+    const res = await fetch(
+      `${API_URL}/neradni-dani`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
-  const praznici = neradniDani.map(
-    (d) =>
-      new Date(d.datum)
-        .toISOString()
-        .split("T")[0]
-  );
+    const neradniDani = await res.json();
 
-  let broj = 0;
+    localStorage.setItem(
+      "dokumentOdsustva",
+      JSON.stringify(odsustvo)
+    );
 
-  const trenutni = new Date(start);
+    localStorage.setItem(
+      "neradniDani",
+      JSON.stringify(neradniDani)
+    );
 
-  while (trenutni <= end) {
-    const danUSedmici =
-      trenutni.getDay();
+    localStorage.setItem(
+      "tipDokumenta",
+      tip
+    );
 
-    const datumString =
-      trenutni
-        .toISOString()
-        .split("T")[0];
-
-    const vikend =
-      danUSedmici === 0 ||
-      danUSedmici === 6;
-
-    const praznik =
-      praznici.includes(datumString);
-
-    if (!vikend && !praznik) {
-      broj++;
-    }
+    window.open(
+      "/dokument-odsustva",
+      "_blank"
+    );
+  } catch (error) {
+    console.error(error);
+    alert(
+      "Greška kod učitavanja neradnih dana."
+    );
+  }
+};
 
     trenutni.setDate(
       trenutni.getDate() + 1
@@ -187,7 +188,6 @@ function Godisnji() {
   }
 
   return broj;
-}
 
   const filtriraniZahtjevi = useMemo(() => {
     return zahtjevi.filter((z) => {
@@ -459,6 +459,5 @@ function Godisnji() {
       </div>
     </div>
   );
-}
 
 export default Godisnji;
