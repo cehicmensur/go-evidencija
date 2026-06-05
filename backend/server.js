@@ -115,6 +115,12 @@ app.post("/register", async (req, res) => {
         id: Number(zaposlenikId),
       },
     });
+    
+    const postoji = await prisma.korisnik.findUnique({
+  where: {
+    email,
+  },
+});
 
     if (postoji) {
       return res.status(400).json({ error: "Korisnik već postoji" });
