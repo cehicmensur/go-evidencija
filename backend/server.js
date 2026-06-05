@@ -451,14 +451,6 @@ app.delete("/zaposlenici/:id", provjeriToken, samoAdmin, async (req, res) => {
       },
     });
 
-    await prisma.auditLog.create({
-      data: {
-        korisnik: req.korisnik.ime || "Admin",
-        akcija: "BRISANJE ZAPOSLENIKA",
-        detalji: `Obrisan zaposlenik ID ${zaposlenikId}`,
-      },
-    });
-
     await prisma.zaposlenik.delete({
       where: {
         id: zaposlenikId,
