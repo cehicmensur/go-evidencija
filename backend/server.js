@@ -108,10 +108,12 @@ app.get("/", (req, res) => {
 /* JAVNA REGISTRACIJA */
 app.post("/register", async (req, res) => {
   try {
-    const { ime, email, lozinka, zaposlenikId } = req.body;
+    const { email, lozinka, zaposlenikId } = req.body;
 
-    const postoji = await prisma.korisnik.findUnique({
-      where: { email },
+    const zaposlenik = await prisma.zaposlenik.findUnique({
+      where: {
+        id: Number(zaposlenikId),
+      },
     });
 
     if (postoji) {
@@ -120,16 +122,16 @@ app.post("/register", async (req, res) => {
 
     const hashovanaLozinka = await bcrypt.hash(lozinka, 10);
 
-    await prisma.korisnik.create({
-      data: {
-        ime,
-        email,
-        lozinka: hashovanaLozinka,
-        uloga: "zaposlenik",
-        odobren: false,
-        zaposlenikId: zaposlenikId ? Number(zaposlenikId) : null,
-      },
-    });
+await prisma.korisnik.create({
+  data: {
+    ime: zaposlenik?.ime || email,
+    email,
+    lozinka: hashovanaLozinka,
+    uloga: "zaposlenik",
+    odobren: false,
+    zaposlenikId: Number(zaposlenikId),
+  },
+});
 
     res.json({
       message:
