@@ -628,7 +628,27 @@ app.delete(
     }
   }
 );
+app.get("/test-email", async (req, res) => {
+  try {
+    const rezultat = await resend.emails.send({
+      from: "onboarding@resend.dev",
+      to: ADMIN_EMAIL,
+      subject: "GO Evidencija - Test email",
+      html: `
+        <h2>Test email</h2>
+        <p>Resend radi ispravno.</p>
+      `,
+    });
 
+    res.json(rezultat);
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      error: error.message,
+    });
+  }
+});
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
