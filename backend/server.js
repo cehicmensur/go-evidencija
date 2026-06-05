@@ -504,10 +504,12 @@ app.post("/godisnji", provjeriToken, async (req, res) => {
         : Number(req.korisnik.zaposlenikId);
 
     if (!finalZaposlenikId) {
-      return res.status(400).json({
-        error: "Korisnik nije povezan sa zaposlenikom.",
-      });
-    }
+  console.log(req.korisnik);
+
+  return res.status(400).json({
+    error: "Korisnik nije povezan sa zaposlenikom.",
+  });
+}
 
     const finalVrsta = vrsta || "Godišnji odmor";
 
