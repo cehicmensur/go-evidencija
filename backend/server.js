@@ -523,23 +523,6 @@ app.post("/godisnji", provjeriToken, async (req, res) => {
       },
     });
 
-    try {
-  await resend.emails.send({
-    from: "onboarding@resend.dev",
-    to: ADMIN_EMAIL,
-    subject: "Novi zahtjev za odsustvo",
-    html: `
-      <h2>Novi zahtjev za odsustvo</h2>
-
-      <p><strong>Vrsta:</strong> ${finalVrsta}</p>
-      <p><strong>Od:</strong> ${od}</p>
-      <p><strong>Do:</strong> ${doDatuma}</p>
-      <p><strong>Napomena:</strong> ${napomena || "-"}</p>
-    `,
-  });
-} catch (emailError) {
-  console.error("GRESKA EMAIL:", emailError);
-}
     res.json(novi);
   } catch (error) {
     console.error(error);
