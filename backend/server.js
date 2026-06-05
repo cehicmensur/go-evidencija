@@ -437,15 +437,42 @@ app.put("/zaposlenici/:id", provjeriToken, samoAdmin, async (req, res) => {
 app.delete("/zaposlenici/:id", provjeriToken, samoAdmin, async (req, res) => {
   try {
     const { id } = req.params;
+    const zaposlenikId = Number(id);
 
-    await prisma.zaposlenik.delete({
-      where: { id: Number(id) },
+    await prisma.godisnjiOdmor.deleteMany({
+      where: {
+        zaposlenikId,
+      },
     });
 
-    res.json({ message: "Zaposlenik obrisan" });
+    await prisma.korisnik.deleteMany({
+      where: {
+        zaposlenikId,
+      },
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        korisnik: req.korisnik.ime || "Admin",
+        akcija: "BRISANJE ZAPOSLENIKA",
+        detalji: `Obrisan zaposlenik ID ${zaposlenikId}`,
+      },
+    });
+
+    await prisma.zaposlenik.delete({
+      where: {
+        id: zaposlenikId,
+      },
+    });
+
+    res.json({
+      message: "Zaposlenik obrisan",
+    });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Greška kod brisanja zaposlenika" });
+    res.status(500).json({
+      error: "Greška kod brisanja zaposlenika",
+    });
   }
 });
 
