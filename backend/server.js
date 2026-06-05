@@ -3,9 +3,14 @@ const cors = require("cors");
 const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { Resend } = require("resend");
 
 const prisma = new PrismaClient();
 const app = express();
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+const ADMIN_EMAIL = "cehicmensur@gmail.com";
 
 app.use(cors());
 app.use(express.json());
@@ -518,10 +523,37 @@ app.post("/godisnji", provjeriToken, async (req, res) => {
       },
     });
 
+    const zaposlenik = await prisma.zaposlenik.findUnique({
+      where: {
+        id: finalZaposlenikId,
+      },
+    });
+
+    try {
+      await resend.emails.send({
+        from: "onboarding@resend.dev",
+        to: ADMIN_EMAIL,
+        subject: "Novi zahtjev za odsustvo",
+        html: `
+          <h2>Novi zahtjev za odsustvo</h2>
+
+          <p><strong>Zaposlenik:</strong> ${zaposlenik?.ime || "Nepoznato"}</p>
+          <p><strong>Vrsta:</strong> ${finalVrsta}</p>
+          <p><strong>Od:</strong> ${od}</p>
+          <p><strong>Do:</strong> ${doDatuma}</p>
+          <p><strong>Napomena:</strong> ${napomena || "-"}</p>
+        `,
+      });
+    } catch (emailError) {
+      console.error("Greška kod slanja emaila:", emailError);
+    }
+
     res.json(novi);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Greška kod dodavanja odsustva" });
+    res.status(500).json({
+      error: "Greška kod dodavanja odsustva",
+    });
   }
 });
 
