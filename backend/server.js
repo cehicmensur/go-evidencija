@@ -533,6 +533,28 @@ app.post("/godisnji", provjeriToken, async (req, res) => {
       },
     });
 
+const zaposlenik = await prisma.zaposlenik.findUnique({
+  where: {
+    id: finalZaposlenikId,
+  },
+});
+
+await resend.emails.send({
+  from: "onboarding@resend.dev",
+  to: ADMIN_EMAIL,
+  subject: "GO Evidencija - Novi zahtjev",
+  html: `
+    <h2>Novi zahtjev za odsustvo</h2>
+
+    <p><strong>Zaposlenik:</strong> ${zaposlenik?.ime}</p>
+    <p><strong>Vrsta:</strong> ${finalVrsta}</p>
+    <p><strong>Od:</strong> ${od}</p>
+    <p><strong>Do:</strong> ${doDatuma}</p>
+
+    <p>Prijavite se u GO Evidenciju radi obrade zahtjeva.</p>
+  `,
+});
+
     res.json(novi);
   } catch (error) {
     console.error(error);
