@@ -572,7 +572,40 @@ app.put("/godisnji/:id", provjeriToken, samoAdmin, async (req, res) => {
     const zahtjev = await prisma.godisnjiOdmor.update({
       where: { id: Number(id) },
       data: { status },
+      include: {
+        zaposlenik: true,
+      },
     });
+
+    const korisnik = await prisma.korisnik.findFirst({
+      where: {
+        zaposlenikId: zahtjev.zaposlenikId,
+      },
+    });
+
+    if (korisnik?.email) {
+      await resend.emails.send({
+        from: "onboarding@resend.dev",
+        to: korisnik.email,
+        subject: `GO Evidencija - Zahtjev ${status}`,
+        html: `
+          <h2>Status zahtjeva promijenjen</h2>
+
+          <p>Poštovani/a ${zahtjev.zaposlenik?.ime},</p>
+
+          <p>Vaš zahtjev za odsustvo je <strong>${status}</strong>.</p>
+
+          <p>
+            Period:
+            ${new Date(zahtjev.od).toLocaleDateString("bs-BA")}
+            -
+            ${new Date(zahtjev.do).toLocaleDateString("bs-BA")}
+          </p>
+
+          <p>GO Evidencija</p>
+        `,
+      });
+    }
 
     res.json(zahtjev);
   } catch (error) {
