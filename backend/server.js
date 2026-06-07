@@ -587,6 +587,9 @@ app.put("/godisnji/:id", provjeriToken, samoAdmin, async (req, res) => {
       },
     });
 
+console.log("KORISNIK:", korisnik);
+console.log("EMAIL:", korisnik?.email);
+
     if (korisnik?.email) {
       await resend.emails.send({
         from: "onboarding@resend.dev",
