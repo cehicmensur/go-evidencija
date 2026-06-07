@@ -590,29 +590,22 @@ app.put("/godisnji/:id", provjeriToken, samoAdmin, async (req, res) => {
 console.log("KORISNIK:", korisnik);
 console.log("EMAIL:", korisnik?.email);
 
-    if (korisnik?.email) {
-      await resend.emails.send({
-        from: "onboarding@resend.dev",
-        to: korisnik.email,
-        subject: `GO Evidencija - Zahtjev ${status}`,
-        html: `
-          <h2>Status zahtjeva promijenjen</h2>
+if (korisnik?.email) {
+  const rezultat = await resend.emails.send({
+    from: "onboarding@resend.dev",
+    to: korisnik.email,
+    subject: `GO Evidencija - Zahtjev ${status}`,
+    html: `
+      <h2>Status zahtjeva promijenjen</h2>
 
-          <p>Poštovani/a ${zahtjev.zaposlenik?.ime},</p>
+      <p>Poštovani/a ${zahtjev.zaposlenik?.ime},</p>
 
-          <p>Vaš zahtjev za odsustvo je <strong>${status}</strong>.</p>
+      <p>Vaš zahtjev za odsustvo je <strong>${status}</strong>.</p>
+    `,
+  });
 
-          <p>
-            Period:
-            ${new Date(zahtjev.od).toLocaleDateString("bs-BA")}
-            -
-            ${new Date(zahtjev.do).toLocaleDateString("bs-BA")}
-          </p>
-
-          <p>GO Evidencija</p>
-        `,
-      });
-    }
+  console.log("RESEND:", rezultat);
+}
 
     res.json(zahtjev);
   } catch (error) {
