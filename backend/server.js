@@ -506,6 +506,10 @@ app.post("/godisnji", provjeriToken, async (req, res) => {
   try {
     const { zaposlenikId, vrsta, od, do: doDatuma, napomena } = req.body;
 
+    console.log("OD:", od);
+console.log("DO:", doDatuma);
+console.log("BODY:", req.body);
+
     const finalZaposlenikId =
       req.korisnik.uloga === "admin"
         ? Number(zaposlenikId)
