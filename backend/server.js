@@ -696,8 +696,7 @@ app.delete(
 app.get("/test-email", async (req, res) => {
   try {
     const rezultat = await resend.emails.send({
-      from: "onboarding@resend.dev",
-      to: ADMIN_EMAIL,
+from: "noreply@mizbihac.ba"      to: ADMIN_EMAIL,
       subject: "GO Evidencija - Test email",
       html: `
         <h2>Test email</h2>
