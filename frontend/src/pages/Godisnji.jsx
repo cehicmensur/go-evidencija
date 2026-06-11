@@ -296,51 +296,57 @@ function Godisnji() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <input
-          className="border border-slate-300 rounded-xl px-4 py-3"
-          placeholder="Pretraga zaposlenika"
-          value={pretraga}
-          onChange={(e) => setPretraga(e.target.value)}
-        />
+       {korisnik?.uloga === "admin" && (
+  <input
+    className="border border-slate-300 rounded-xl px-4 py-3"
+    placeholder="Pretraga zaposlenika"
+    value={pretraga}
+    onChange={(e) => setPretraga(e.target.value)}
+  />
+)}
 
-        <select
-          className="border border-slate-300 rounded-xl px-4 py-3"
-          value={filterVrsta}
-          onChange={(e) => setFilterVrsta(e.target.value)}
-        >
-          <option value="">
-            Sve vrste
-          </option>
+       {korisnik?.uloga === "admin" && (
+  <>
+    <select
+      className="border border-slate-300 rounded-xl px-4 py-3"
+      value={filterVrsta}
+      onChange={(e) => setFilterVrsta(e.target.value)}
+    >
+      <option value="">
+        Sve vrste
+      </option>
 
-          {vrsteOdsustva.map((v) => (
-            <option key={v} value={v}>
-              {v}
-            </option>
-          ))}
-        </select>
+      {vrsteOdsustva.map((v) => (
+        <option key={v} value={v}>
+          {v}
+        </option>
+      ))}
+    </select>
 
-        <select
-          className="border border-slate-300 rounded-xl px-4 py-3"
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-        >
-          <option value="">
-            Svi statusi
-          </option>
+    <select
+      className="border border-slate-300 rounded-xl px-4 py-3"
+      value={filterStatus}
+      onChange={(e) => setFilterStatus(e.target.value)}
+    >
+      <option value="">
+        Svi statusi
+      </option>
 
-          <option value="na čekanju">
-            Na čekanju
-          </option>
+      <option value="na čekanju">
+        Na čekanju
+      </option>
 
-          <option value="odobreno">
-            Odobreno
-          </option>
+      <option value="odobreno">
+        Odobreno
+      </option>
 
-          <option value="odbijeno">
-            Odbijeno
-          </option>
-        </select>
-      </div>
+      <option value="odbijeno">
+        Odbijeno
+      </option>
+    </select>
+  </>
+)}
+</div>
 
       <div className="overflow-x-auto bg-white rounded-2xl shadow">
         <table className="w-full">
