@@ -508,17 +508,12 @@ app.post("/godisnji", provjeriToken, async (req, res) => {
   try {
     const { zaposlenikId, vrsta, od, do: doDatuma, napomena } = req.body;
 
-    console.log("OD:", od);
-console.log("DO:", doDatuma);
-console.log("BODY:", req.body);
-
     const finalZaposlenikId =
       req.korisnik.uloga === "admin"
         ? Number(zaposlenikId)
         : Number(req.korisnik.zaposlenikId);
 
     if (!finalZaposlenikId) {
-  console.log(req.korisnik);
 
   return res.status(400).json({
     error: "Korisnik nije povezan sa zaposlenikom.",
@@ -589,9 +584,6 @@ app.put("/godisnji/:id", provjeriToken, samoAdmin, async (req, res) => {
       },
     });
 
-console.log("KORISNIK:", korisnik);
-console.log("EMAIL:", korisnik?.email);
-
 if (korisnik?.email) {
   const rezultat = await resend.emails.send({
     from: "noreply@mizbihac.ba",
@@ -606,7 +598,6 @@ if (korisnik?.email) {
     `,
   });
 
-  console.log("RESEND:", rezultat);
 }
 
     res.json(zahtjev);
