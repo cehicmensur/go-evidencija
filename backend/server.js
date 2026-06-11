@@ -10,6 +10,8 @@ const app = express();
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+console.log("RESEND KEY:", process.env.RESEND_API_KEY?.substring(0, 10));
+
 const ADMIN_EMAIL = "cehicmensur@gmail.com";
 
 app.use(cors());
@@ -544,7 +546,7 @@ const zaposlenik = await prisma.zaposlenik.findUnique({
 });
 
 await resend.emails.send({
-  from: "onboarding@resend.dev",
+  from: "noreply@mizbihac.ba",
   to: ADMIN_EMAIL,
   subject: "GO Evidencija - Novi zahtjev",
   html: `
@@ -592,7 +594,7 @@ console.log("EMAIL:", korisnik?.email);
 
 if (korisnik?.email) {
   const rezultat = await resend.emails.send({
-    from: "onboarding@resend.dev",
+    from: "noreply@mizbihac.ba",
     to: korisnik.email,
     subject: `GO Evidencija - Zahtjev ${status}`,
     html: `
@@ -696,7 +698,7 @@ app.delete(
 app.get("/test-email", async (req, res) => {
   try {
     const rezultat = await resend.emails.send({
-from: "noreply@mizbihac.ba"      to: ADMIN_EMAIL,
+from: "noreply@mizbihac.ba",     to: ADMIN_EMAIL,
       subject: "GO Evidencija - Test email",
       html: `
         <h2>Test email</h2>
