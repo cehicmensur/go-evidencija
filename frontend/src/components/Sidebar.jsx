@@ -66,18 +66,27 @@ function Sidebar() {
         </h1>
 
         <div className="flex flex-col gap-4">
-          <Link to="/" className="hover:text-slate-300">
-            Dashboard
-          </Link>
 
           {korisnik?.uloga === "admin" && (
-            <Link to="/zaposlenici" className="hover:text-slate-300">
+            <Link to="/" className="hover:text-slate-300">
+              Dashboard
+            </Link>
+          )}
+
+          {korisnik?.uloga === "admin" && (
+            <Link
+              to="/zaposlenici"
+              className="hover:text-slate-300"
+            >
               Zaposlenici
             </Link>
           )}
 
           {korisnik?.uloga === "admin" && (
-            <Link to="/korisnici" className="hover:text-slate-300">
+            <Link
+              to="/korisnici"
+              className="hover:text-slate-300"
+            >
               Korisnici
             </Link>
           )}
@@ -86,27 +95,37 @@ function Sidebar() {
             to="/godisnji"
             className="hover:text-slate-300 flex items-center justify-between"
           >
-            <span>Odsustva</span>
+            <span>
+              {korisnik?.uloga === "admin"
+                ? "Odsustva"
+                : "Moja odsustva"}
+            </span>
 
-            {korisnik?.uloga === "admin" && pendingCount > 0 && (
-              <span className="bg-red-600 text-white text-xs px-2 py-1 rounded-full">
-                {pendingCount}
-              </span>
-            )}
+            {korisnik?.uloga === "admin" &&
+              pendingCount > 0 && (
+                <span className="bg-red-600 text-white text-xs px-2 py-1 rounded-full">
+                  {pendingCount}
+                </span>
+              )}
           </Link>
 
-          <Link to="/kalendar" className="hover:text-slate-300">
-            Kalendar
-          </Link>
           {korisnik?.uloga === "admin" && (
+            <Link
+              to="/kalendar"
+              className="hover:text-slate-300"
+            >
+              Kalendar
+            </Link>
+          )}
 
-  <Link
-    to="/neradni-dani"
-    className="hover:text-slate-300"
-  >
-    Neradni dani
-  </Link>
-)}
+          {korisnik?.uloga === "admin" && (
+            <Link
+              to="/neradni-dani"
+              className="hover:text-slate-300"
+            >
+              Neradni dani
+            </Link>
+          )}
 
         </div>
       </div>
