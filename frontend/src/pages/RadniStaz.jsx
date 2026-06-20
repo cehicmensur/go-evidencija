@@ -76,39 +76,51 @@ function RadniStaz() {
       return;
     }
 
-    try {
-      const res = await fetch(
-        `${API_URL}/radni-staz`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            zaposlenikId,
-            poslodavac,
-            datumOd,
-            datumDo,
-          }),
-        }
-      );
-
-      const data = await res.json();
-
-      alert(JSON.stringify(data));
-
-      setPoslodavac("");
-      setDatumOd("");
-      setDatumDo("");
-
-      await ucitajStaz();
-    } catch (error) {
-      console.error(error);
-      alert("Greška kod dodavanja.");
+try {
+  const res = await fetch(
+    `${API_URL}/radni-staz`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        zaposlenikId,
+        poslodavac,
+        datumOd,
+        datumDo,
+      }),
     }
-  };
+  );
 
+  const data = await res.json();
+
+  alert(
+    `STATUS: ${res.status}\n\n${JSON.stringify(
+      data,
+      null,
+      2
+    )}`
+  );
+
+  if (!res.ok) {
+    return;
+  }
+
+  setPoslodavac("");
+  setDatumOd("");
+  setDatumDo("");
+
+  await ucitajStaz();
+} catch (error) {
+  console.error(error);
+
+  alert(
+    `FETCH GREŠKA:\n${error.message}`
+  );
+}
+};
   const obrisi = async (id) => {
     if (
       !window.confirm(
