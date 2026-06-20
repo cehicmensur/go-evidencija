@@ -55,9 +55,9 @@ function RadniStaz() {
 
   return (
     <div>
-      <h1 className="text-4xl font-bold mb-8">
-        Radni staž
-      </h1>
+    <h1 className="text-4xl font-bold mb-8 text-red-600">
+  RADNI STAZ TEST 123
+</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
 
