@@ -31,6 +31,15 @@ function RadniStaz() {
       });
 
       const data = await res.json();
+
+console.log("ODGOVOR:", data);
+
+if (Array.isArray(data)) {
+  setStavke(data);
+} else {
+  console.error("Nije niz:", data);
+  setStavke([]);
+}
       setZaposlenici(data);
     } catch (error) {
       console.error(error);
@@ -194,7 +203,8 @@ function RadniStaz() {
           </thead>
 
           <tbody>
-            {stavke.map((s) => (
+           {Array.isArray(stavke) &&
+  stavke.map((s) => (
               <tr
                 key={s.id}
                 className="border-b"
