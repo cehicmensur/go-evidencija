@@ -83,12 +83,12 @@ function Sidebar() {
           )}
 
           {korisnik?.uloga === "admin" && (
-  <Link
-    to="/radni-staz"
-    className="hover:text-slate-300"
-  >
-    Radni staž
-  </Link>
+<Link
+  to="/radni-staz"
+  className="hover:text-slate-300 text-red-400"
+>
+  RADNI STAZ TEST
+</Link>
 )}
 
           {korisnik?.uloga === "admin" && (
