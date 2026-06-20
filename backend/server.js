@@ -893,6 +893,8 @@ app.post(
           },
         });
 
+console.log("NOVI RADNI STAZ:", novi);
+
       res.json(novi);
     } catch (error) {
       console.error(error);
@@ -920,12 +922,12 @@ app.delete(
         success: true,
       });
     } catch (error) {
-      console.error(error);
+  console.error(error);
 
-      res.status(500).json({
-        error: "Greška kod brisanja staža",
-      });
-    }
+  res.status(500).json({
+    error: error.message,
+  });
+}
   }
 );
 const PORT = process.env.PORT || 3000;
