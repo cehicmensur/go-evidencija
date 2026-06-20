@@ -8,40 +8,34 @@ datasource db {
 }
 
 model Zaposlenik {
-  id                     Int             @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  ime                    String
-  pozicija               String
+  ime      String
+  pozicija String
 
-  datumPocetka           DateTime?
+  datumPocetka DateTime?
 
-  godisnji               Int
+  godisnji Int
 
-  prethodniStazGodina    Int             @default(0)
-  prethodniStazMjeseci   Int             @default(0)
+  prethodniStazGodina  Int @default(0)
+  prethodniStazMjeseci Int @default(0)
 
-    dodatniDani            Int             @default(0)
+  dodatniDani Int @default(0)
 
-  odmori                 GodisnjiOdmor[]
-  korisnik               Korisnik?
+  odmori   GodisnjiOdmor[]
+  korisnik Korisnik?
 
-  radniStazovi           RadniStaz[]
+  radniStazovi RadniStaz[]
 }
 
 model RadniStaz {
-  id            Int      @id @default(autoincrement())
+  id           Int      @id @default(autoincrement())
+  zaposlenikId Int
+  poslodavac   String
+  datumOd      DateTime
+  datumDo      DateTime
 
-  zaposlenikId  Int
-
-  poslodavac    String
-
-  datumOd       DateTime
-  datumDo       DateTime
-
-  zaposlenik    Zaposlenik @relation(
-    fields: [zaposlenikId],
-    references: [id]
-  )
+  zaposlenik Zaposlenik @relation(fields: [zaposlenikId], references: [id])
 }
 
 model GodisnjiOdmor {
@@ -74,10 +68,11 @@ model playing_with_neon {
 }
 
 model NeradniDan {
-  id     Int      @id @default(autoincrement())
-  naziv  String
-  datum  DateTime
+  id    Int      @id @default(autoincrement())
+  naziv String
+  datum DateTime
 }
+
 model AuditLog {
   id        Int      @id @default(autoincrement())
   korisnik  String
