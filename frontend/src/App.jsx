@@ -52,7 +52,13 @@ function App() {
 
 <Route
   path="/radni-staz"
-  element={<h1>RADNI STAZ RUTA RADI</h1>}
+  element={
+    korisnik?.uloga === "admin" ? (
+      <RadniStaz />
+    ) : (
+      <Navigate to="/godisnji" />
+    )
+  }
 />
 
             <Route
