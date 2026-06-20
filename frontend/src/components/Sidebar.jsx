@@ -87,7 +87,7 @@ function Sidebar() {
   to="/radni-staz"
   className="hover:text-slate-300 text-red-400"
 >
-  RADNI STAZ TEST
+Radni staž
 </Link>
 )}
 
