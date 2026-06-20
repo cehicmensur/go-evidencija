@@ -8,6 +8,7 @@ import Korisnici from "./pages/Korisnici";
 import DokumentOdsustva from "./pages/DokumentOdsustva";
 import Kalendar from "./pages/Kalendar";
 import NeradniDani from "./pages/NeradniDani";
+import RadniStaz from "./pages/RadniStaz";
 
 import Sidebar from "./components/Sidebar";
 
@@ -48,6 +49,11 @@ function App() {
                 )
               }
             />
+
+<Route
+  path="/radni-staz"
+  element={<h1>RADNI STAZ RUTA RADI</h1>}
+/>
 
             <Route
               path="/korisnici"
