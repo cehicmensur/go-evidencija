@@ -209,6 +209,29 @@ function Godisnji() {
           <p className="text-slate-500 mt-2">
             Evidencija godišnjih odmora i drugih odsustava
           </p>
+          {korisnik?.uloga !== "admin" && (
+  <div className="flex gap-4 mt-4">
+    <div className="bg-white shadow rounded-xl p-4">
+      <p className="text-sm text-slate-500">
+        Preostalo godišnjeg
+      </p>
+
+      <p className="text-2xl font-bold text-emerald-600">
+        0 dana
+      </p>
+    </div>
+
+    <div className="bg-white shadow rounded-xl p-4">
+      <p className="text-sm text-slate-500">
+        Iskorišteno godišnjeg
+      </p>
+
+      <p className="text-2xl font-bold text-slate-700">
+        0 dana
+      </p>
+    </div>
+  </div>
+)}
         </div>
 
         <button

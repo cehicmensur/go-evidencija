@@ -26,7 +26,17 @@ function App() {
 
         <main className="flex-1 p-8">
           <Routes>
-            <Route path="/" element={<Dashboard />} />
+
+            <Route
+              path="/"
+              element={
+                korisnik?.uloga === "admin" ? (
+                  <Dashboard />
+                ) : (
+                  <Navigate to="/godisnji" />
+                )
+              }
+            />
 
             <Route
               path="/zaposlenici"
@@ -34,7 +44,7 @@ function App() {
                 korisnik?.uloga === "admin" ? (
                   <Zaposlenici />
                 ) : (
-                  <Navigate to="/" />
+                  <Navigate to="/godisnji" />
                 )
               }
             />
@@ -45,31 +55,53 @@ function App() {
                 korisnik?.uloga === "admin" ? (
                   <Korisnici />
                 ) : (
-                  <Navigate to="/" />
+                  <Navigate to="/godisnji" />
                 )
               }
             />
 
-            <Route path="/godisnji" element={<Godisnji />} />
-
-            <Route path="/kalendar" element={<Kalendar />} />
             <Route
-  path="/neradni-dani"
-  element={
-    korisnik?.uloga === "admin" ? (
-      <NeradniDani />
-    ) : (
-      <Navigate to="/" />
-    )
-  }
-/>
+              path="/godisnji"
+              element={<Godisnji />}
+            />
+
+            <Route
+              path="/kalendar"
+              element={
+                korisnik?.uloga === "admin" ? (
+                  <Kalendar />
+                ) : (
+                  <Navigate to="/godisnji" />
+                )
+              }
+            />
+
+            <Route
+              path="/neradni-dani"
+              element={
+                korisnik?.uloga === "admin" ? (
+                  <NeradniDani />
+                ) : (
+                  <Navigate to="/godisnji" />
+                )
+              }
+            />
 
             <Route
               path="/dokument-odsustva"
               element={<DokumentOdsustva />}
             />
 
-            <Route path="*" element={<Navigate to="/" />} />
+            <Route
+              path="*"
+              element={
+                korisnik?.uloga === "admin" ? (
+                  <Navigate to="/" />
+                ) : (
+                  <Navigate to="/godisnji" />
+                )
+              }
+            />
           </Routes>
         </main>
       </div>
