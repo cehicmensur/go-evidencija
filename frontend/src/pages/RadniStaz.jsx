@@ -10,7 +10,8 @@ function RadniStaz() {
   const [datumDo, setDatumDo] = useState("");
 
   const token = localStorage.getItem("token");
-  const API_URL = "https://go-evidencija-backend.onrender.com";
+  const API_URL =
+    "https://go-evidencija-backend.onrender.com";
 
   useEffect(() => {
     ucitajZaposlenike();
@@ -24,22 +25,16 @@ function RadniStaz() {
 
   const ucitajZaposlenike = async () => {
     try {
-      const res = await fetch(`${API_URL}/zaposlenici`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await fetch(
+        `${API_URL}/zaposlenici`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       const data = await res.json();
-
-console.log("ODGOVOR:", data);
-
-if (Array.isArray(data)) {
-  setStavke(data);
-} else {
-  console.error("Nije niz:", data);
-  setStavke([]);
-}
       setZaposlenici(data);
     } catch (error) {
       console.error(error);
@@ -58,9 +53,15 @@ if (Array.isArray(data)) {
       );
 
       const data = await res.json();
-      setStavke(data);
+
+      if (Array.isArray(data)) {
+        setStavke(data);
+      } else {
+        setStavke([]);
+      }
     } catch (error) {
       console.error(error);
+      setStavke([]);
     }
   };
 
@@ -76,59 +77,59 @@ if (Array.isArray(data)) {
     }
 
     try {
-   const res = await fetch(`${API_URL}/radni-staz`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          zaposlenikId,
-          poslodavac,
-          datumOd,
-          datumDo,
-        }),
-      });
+      const res = await fetch(
+        `${API_URL}/radni-staz`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            zaposlenikId,
+            poslodavac,
+            datumOd,
+            datumDo,
+          }),
+        }
+      );
+
+      const data = await res.json();
+
+      alert(JSON.stringify(data));
 
       setPoslodavac("");
       setDatumOd("");
       setDatumDo("");
 
-      ucitajStaz();
+      await ucitajStaz();
     } catch (error) {
       console.error(error);
+      alert("Greška kod dodavanja.");
     }
   };
 
   const obrisi = async (id) => {
-    if (!confirm("Obrisati stavku radnog staža?")) {
+    if (
+      !window.confirm(
+        "Obrisati stavku radnog staža?"
+      )
+    ) {
       return;
     }
 
     try {
- const res = await fetch(`${API_URL}/radni-staz`, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  },
-  body: JSON.stringify({
-    zaposlenikId,
-    poslodavac,
-    datumOd,
-    datumDo,
-  }),
-});
+      await fetch(
+        `${API_URL}/radni-staz/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-const data = await res.json();
-
-alert(JSON.stringify(data));
-
-setPoslodavac("");
-setDatumOd("");
-setDatumDo("");
-
-ucitajStaz();
+      await ucitajStaz();
     } catch (error) {
       console.error(error);
     }
@@ -141,9 +142,8 @@ ucitajStaz();
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
-
         <select
-          className="border border-slate-300 rounded-xl px-4 py-3"
+          className="border rounded-xl px-4 py-3"
           value={zaposlenikId}
           onChange={(e) =>
             setZaposlenikId(e.target.value)
@@ -154,14 +154,17 @@ ucitajStaz();
           </option>
 
           {zaposlenici.map((z) => (
-            <option key={z.id} value={z.id}>
+            <option
+              key={z.id}
+              value={z.id}
+            >
               {z.ime}
             </option>
           ))}
         </select>
 
         <input
-          className="border border-slate-300 rounded-xl px-4 py-3"
+          className="border rounded-xl px-4 py-3"
           placeholder="Poslodavac"
           value={poslodavac}
           onChange={(e) =>
@@ -171,7 +174,7 @@ ucitajStaz();
 
         <input
           type="date"
-          className="border border-slate-300 rounded-xl px-4 py-3"
+          className="border rounded-xl px-4 py-3"
           value={datumOd}
           onChange={(e) =>
             setDatumOd(e.target.value)
@@ -180,7 +183,7 @@ ucitajStaz();
 
         <input
           type="date"
-          className="border border-slate-300 rounded-xl px-4 py-3"
+          className="border rounded-xl px-4 py-3"
           value={datumDo}
           onChange={(e) =>
             setDatumDo(e.target.value)
@@ -189,34 +192,33 @@ ucitajStaz();
 
         <button
           onClick={dodaj}
-          className="bg-slate-800 hover:bg-slate-700 text-white rounded-xl px-4 py-3"
+          className="bg-slate-800 text-white rounded-xl px-4 py-3"
         >
           Dodaj
         </button>
       </div>
 
-      <div className="overflow-x-auto bg-white rounded-2xl shadow">
+      <div className="overflow-x-auto bg-white rounded-xl shadow">
         <table className="w-full">
-          <thead className="bg-slate-800 text-white">
+          <thead>
             <tr>
-              <th className="p-4 text-left">
+              <th className="p-3 text-left">
                 Poslodavac
               </th>
-              <th className="p-4 text-left">
-                Datum od
+              <th className="p-3 text-left">
+                Od
               </th>
-              <th className="p-4 text-left">
-                Datum do
+              <th className="p-3 text-left">
+                Do
               </th>
-              <th className="p-4 text-left">
+              <th className="p-3 text-left">
                 Akcija
               </th>
             </tr>
           </thead>
 
           <tbody>
-           {Array.isArray(stavke) &&
-  stavke.map((s) => (
+            {stavke.map((s) => (
               <tr
                 key={s.id}
                 className="border-b"
@@ -228,13 +230,17 @@ ucitajStaz();
                 <td className="p-3">
                   {new Date(
                     s.datumOd
-                  ).toLocaleDateString("bs-BA")}
+                  ).toLocaleDateString(
+                    "bs-BA"
+                  )}
                 </td>
 
                 <td className="p-3">
                   {new Date(
                     s.datumDo
-                  ).toLocaleDateString("bs-BA")}
+                  ).toLocaleDateString(
+                    "bs-BA"
+                  )}
                 </td>
 
                 <td className="p-3">
@@ -242,7 +248,7 @@ ucitajStaz();
                     onClick={() =>
                       obrisi(s.id)
                     }
-                    className="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg"
+                    className="bg-red-600 text-white px-3 py-1 rounded"
                   >
                     Obriši
                   </button>
