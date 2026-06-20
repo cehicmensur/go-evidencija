@@ -414,6 +414,7 @@ app.get(
             id: z.id,
             ime: z.ime,
             pozicija: z.pozicija,
+            datumPocetka: z.datumPocetka,
 
             godisnji: z.godisnji,
             dodatniDani: z.dodatniDani || 0,
