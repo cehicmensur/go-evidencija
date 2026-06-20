@@ -410,11 +410,43 @@ app.get(
             }
           }
 
+          const danas = new Date();
+const pocetak = new Date(z.datumPocetka);
+
+let godineUMIZ =
+  danas.getFullYear() - pocetak.getFullYear();
+
+let mjeseciUMIZ =
+  danas.getMonth() - pocetak.getMonth();
+
+if (mjeseciUMIZ < 0) {
+  godineUMIZ--;
+  mjeseciUMIZ += 12;
+}
+
+let ukupnoGodina =
+  (z.prethodniStazGodina || 0) +
+  godineUMIZ;
+
+let ukupnoMjeseci =
+  (z.prethodniStazMjeseci || 0) +
+  mjeseciUMIZ;
+
+if (ukupnoMjeseci >= 12) {
+  ukupnoGodina += Math.floor(
+    ukupnoMjeseci / 12
+  );
+
+  ukupnoMjeseci =
+    ukupnoMjeseci % 12;
+}
           return {
             id: z.id,
             ime: z.ime,
             pozicija: z.pozicija,
             datumPocetka: z.datumPocetka,
+            ukupnoGodina,
+ukupnoMjeseci,
 
             godisnji: z.godisnji,
             dodatniDani: z.dodatniDani || 0,
