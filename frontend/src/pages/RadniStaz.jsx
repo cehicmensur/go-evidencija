@@ -96,13 +96,7 @@ try {
 
   const data = await res.json();
 
-  alert(
-    `STATUS: ${res.status}\n\n${JSON.stringify(
-      data,
-      null,
-      2
-    )}`
-  );
+ alert("Radni staž uspješno dodan.");
 
   if (!res.ok) {
     return;
