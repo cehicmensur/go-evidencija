@@ -20,10 +20,28 @@ model Zaposlenik {
   prethodniStazGodina    Int             @default(0)
   prethodniStazMjeseci   Int             @default(0)
 
-  dodatniDani            Int             @default(0)
+    dodatniDani            Int             @default(0)
 
   odmori                 GodisnjiOdmor[]
   korisnik               Korisnik?
+
+  radniStazovi           RadniStaz[]
+}
+
+model RadniStaz {
+  id            Int      @id @default(autoincrement())
+
+  zaposlenikId  Int
+
+  poslodavac    String
+
+  datumOd       DateTime
+  datumDo       DateTime
+
+  zaposlenik    Zaposlenik @relation(
+    fields: [zaposlenikId],
+    references: [id]
+  )
 }
 
 model GodisnjiOdmor {
