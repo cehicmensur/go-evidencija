@@ -839,6 +839,95 @@ from: "noreply@mizbihac.ba",     to: ADMIN_EMAIL,
     });
   }
 });
+app.get(
+  "/radni-staz/:zaposlenikId",
+  provjeriToken,
+  async (req, res) => {
+    try {
+      const podaci =
+        await prisma.radniStaz.findMany({
+          where: {
+            zaposlenikId: Number(
+              req.params.zaposlenikId
+            ),
+          },
+          orderBy: {
+            datumOd: "asc",
+          },
+        });
+
+      res.json(podaci);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        error: "Greška kod učitavanja staža",
+      });
+    }
+  }
+);
+
+app.post(
+  "/radni-staz",
+  provjeriToken,
+  samoAdmin,
+  async (req, res) => {
+    try {
+      const {
+        zaposlenikId,
+        poslodavac,
+        datumOd,
+        datumDo,
+      } = req.body;
+
+      const novi =
+        await prisma.radniStaz.create({
+          data: {
+            zaposlenikId:
+              Number(zaposlenikId),
+
+            poslodavac,
+
+            datumOd: new Date(datumOd),
+
+            datumDo: new Date(datumDo),
+          },
+        });
+
+      res.json(novi);
+    } catch (error) {
+      console.error(error);
+
+      res.status(500).json({
+        error: "Greška kod dodavanja staža",
+      });
+    }
+  }
+);
+
+app.delete(
+  "/radni-staz/:id",
+  provjeriToken,
+  samoAdmin,
+  async (req, res) => {
+    try {
+      await prisma.radniStaz.delete({
+        where: {
+          id: Number(req.params.id),
+        },
+      });
+
+      res.json({
+        success: true,
+      });
+    } catch (error) {
+      console.error(error);
+
+      res.status(500).json({
+        error: "Greška kod brisanja staža",
+      });
+    }
+  }
+);
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
