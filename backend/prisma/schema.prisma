@@ -8,12 +8,22 @@ datasource db {
 }
 
 model Zaposlenik {
-  id       Int             @id @default(autoincrement())
-  ime      String
-  pozicija String
-  godisnji Int
-  odmori   GodisnjiOdmor[]
-  korisnik Korisnik?
+  id                     Int             @id @default(autoincrement())
+
+  ime                    String
+  pozicija               String
+
+  datumPocetka           DateTime?
+
+  godisnji               Int
+
+  prethodniStazGodina    Int             @default(0)
+  prethodniStazMjeseci   Int             @default(0)
+
+  dodatniDani            Int             @default(0)
+
+  odmori                 GodisnjiOdmor[]
+  korisnik               Korisnik?
 }
 
 model GodisnjiOdmor {
@@ -49,4 +59,11 @@ model NeradniDan {
   id     Int      @id @default(autoincrement())
   naziv  String
   datum  DateTime
+}
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  korisnik  String
+  akcija    String
+  detalji   String?
+  createdAt DateTime @default(now())
 }

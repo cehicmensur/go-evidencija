@@ -45,22 +45,49 @@ function samoAdmin(req, res, next) {
   next();
 }
 
-function izracunajGodisnji(datum) {
+function izracunajGodisnji(
+  datum,
+  prethodniStazGodina = 0,
+  prethodniStazMjeseci = 0
+) {
   const danas = new Date();
   const pocetak = new Date(datum);
 
-  let godine = danas.getFullYear() - pocetak.getFullYear();
+  let godineUMIZ =
+    danas.getFullYear() -
+    pocetak.getFullYear();
 
-  const mjesecRazlika = danas.getMonth() - pocetak.getMonth();
-  const danRazlika = danas.getDate() - pocetak.getDate();
+  const mjesecRazlika =
+    danas.getMonth() -
+    pocetak.getMonth();
 
-  if (mjesecRazlika < 0 || (mjesecRazlika === 0 && danRazlika < 0)) {
-    godine--;
+  const danRazlika =
+    danas.getDate() -
+    pocetak.getDate();
+
+  if (
+    mjesecRazlika < 0 ||
+    (mjesecRazlika === 0 &&
+      danRazlika < 0)
+  ) {
+    godineUMIZ--;
   }
 
-  if (godine < 5) return 20;
-  if (godine < 10) return 22;
-  if (godine < 20) return 25;
+  let ukupnoGodina =
+    godineUMIZ +
+    Number(prethodniStazGodina || 0);
+
+  if (
+    Number(prethodniStazMjeseci || 0) >= 12
+  ) {
+    ukupnoGodina += Math.floor(
+      prethodniStazMjeseci / 12
+    );
+  }
+
+  if (ukupnoGodina < 5) return 20;
+  if (ukupnoGodina < 10) return 22;
+  if (ukupnoGodina < 20) return 25;
 
   return 30;
 }
@@ -367,34 +394,46 @@ app.get(
           orderBy: { id: "asc" },
         });
 
-      const rezultat =
-        await Promise.all(
-          zaposlenici.map(async (z) => {
-            let iskoristeno = 0;
+      const rezultat = await Promise.all(
+        zaposlenici.map(async (z) => {
+          let iskoristeno = 0;
 
-            for (const o of z.odmori) {
-              if (
-                o.status === "odobreno" &&
-                o.vrsta === "Godišnji odmor"
-              ) {
-                iskoristeno += await brojDana(
-                  o.od,
-                  o.do
-                );
-              }
+          for (const o of z.odmori) {
+            if (
+              o.status === "odobreno" &&
+              o.vrsta === "Godišnji odmor"
+            ) {
+              iskoristeno += await brojDana(
+                o.od,
+                o.do
+              );
             }
+          }
 
-            return {
-              id: z.id,
-              ime: z.ime,
-              pozicija: z.pozicija,
-              godisnji: z.godisnji,
+          return {
+            id: z.id,
+            ime: z.ime,
+            pozicija: z.pozicija,
+
+            godisnji: z.godisnji,
+            dodatniDani: z.dodatniDani || 0,
+
+            prethodniStazGodina:
+              z.prethodniStazGodina || 0,
+
+            prethodniStazMjeseci:
+              z.prethodniStazMjeseci || 0,
+
+            iskoristeno,
+
+            preostalo:
+              z.godisnji +
+              (z.dodatniDani || 0) -
               iskoristeno,
-              preostalo:
-                z.godisnji - iskoristeno,
-            };
-          })
-        );
+          };
+        })
+      );
+      console.log(zaposlenici);
 
       res.json(rezultat);
     } catch (error) {
@@ -409,22 +448,48 @@ app.get(
 
 app.post("/zaposlenici", provjeriToken, samoAdmin, async (req, res) => {
   try {
-    const { ime, pozicija, datumPocetka } = req.body;
+    const {
+      ime,
+      pozicija,
+      datumPocetka,
+      prethodniStazGodina,
+      prethodniStazMjeseci,
+      dodatniDani,
+    } = req.body;
 
-    const godisnji = izracunajGodisnji(datumPocetka);
+    const godisnji = izracunajGodisnji(
+      datumPocetka,
+      prethodniStazGodina,
+      prethodniStazMjeseci
+    );
 
+console.log(req.body);
     const novi = await prisma.zaposlenik.create({
       data: {
         ime,
         pozicija,
+
+        datumPocetka: new Date(datumPocetka),
+
         godisnji,
+
+        prethodniStazGodina:
+          Number(prethodniStazGodina) || 0,
+
+        prethodniStazMjeseci:
+          Number(prethodniStazMjeseci) || 0,
+
+        dodatniDani:
+          Number(dodatniDani) || 0,
       },
     });
 
     res.json(novi);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Greška kod dodavanja zaposlenika" });
+    res.status(500).json({
+      error: "Greška kod dodavanja zaposlenika",
+    });
   }
 });
 
