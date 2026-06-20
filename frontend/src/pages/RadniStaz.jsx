@@ -76,7 +76,7 @@ if (Array.isArray(data)) {
     }
 
     try {
-      await fetch(`${API_URL}/radni-staz`, {
+   const res = await fetch(`${API_URL}/radni-staz`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -106,17 +106,29 @@ if (Array.isArray(data)) {
     }
 
     try {
-      await fetch(
-        `${API_URL}/radni-staz/${id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+ const res = await fetch(`${API_URL}/radni-staz`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  },
+  body: JSON.stringify({
+    zaposlenikId,
+    poslodavac,
+    datumOd,
+    datumDo,
+  }),
+});
 
-      ucitajStaz();
+const data = await res.json();
+
+alert(JSON.stringify(data));
+
+setPoslodavac("");
+setDatumOd("");
+setDatumDo("");
+
+ucitajStaz();
     } catch (error) {
       console.error(error);
     }
