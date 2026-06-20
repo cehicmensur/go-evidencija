@@ -493,26 +493,61 @@ console.log(req.body);
   }
 });
 
-app.put("/zaposlenici/:id", provjeriToken, samoAdmin, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { ime, pozicija, godisnji } = req.body;
+app.put(
+  "/zaposlenici/:id",
+  provjeriToken,
+  samoAdmin,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
 
-    const update = await prisma.zaposlenik.update({
-      where: { id: Number(id) },
-      data: {
+      const {
         ime,
         pozicija,
-        godisnji: Number(godisnji),
-      },
-    });
+        datumPocetka,
+        prethodniStazGodina,
+        prethodniStazMjeseci,
+        dodatniDani,
+      } = req.body;
 
-    res.json(update);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Greška kod izmjene zaposlenika" });
+      const godisnji = izracunajGodisnji(
+        datumPocetka,
+        prethodniStazGodina,
+        prethodniStazMjeseci
+      );
+
+      const update = await prisma.zaposlenik.update({
+        where: {
+          id: Number(id),
+        },
+        data: {
+          ime,
+          pozicija,
+
+          datumPocetka: new Date(datumPocetka),
+
+          prethodniStazGodina:
+            Number(prethodniStazGodina) || 0,
+
+          prethodniStazMjeseci:
+            Number(prethodniStazMjeseci) || 0,
+
+          dodatniDani:
+            Number(dodatniDani) || 0,
+
+          godisnji,
+        },
+      });
+
+      res.json(update);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        error: "Greška kod izmjene zaposlenika",
+      });
+    }
   }
-});
+);
 
 app.delete("/zaposlenici/:id", provjeriToken, samoAdmin, async (req, res) => {
   try {
