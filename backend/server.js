@@ -388,15 +388,36 @@ app.get(
   samoAdmin,
   async (req, res) => {
     try {
-      const zaposlenici =
-        await prisma.zaposlenik.findMany({
-          include: { odmori: true },
-          orderBy: { id: "asc" },
-        });
+ const zaposlenici =
+  await prisma.zaposlenik.findMany({
+    include: {
+      odmori: true,
+      radniStazovi: true,
+    },
+    orderBy: { id: "asc" },
+  });
 
       const rezultat = await Promise.all(
         zaposlenici.map(async (z) => {
           let iskoristeno = 0;
+          let prethodniMjeseci = 0;
+
+for (const s of z.radniStazovi) {
+  const od = new Date(s.datumOd);
+  const _do = new Date(s.datumDo);
+
+  let mjeseci =
+    (_do.getFullYear() - od.getFullYear()) * 12 +
+    (_do.getMonth() - od.getMonth());
+
+  prethodniMjeseci += mjeseci;
+}
+
+const prethodniGodina =
+  Math.floor(prethodniMjeseci / 12);
+
+const ostatakMjeseci =
+  prethodniMjeseci % 12;
 
           for (const o of z.odmori) {
             if (
@@ -425,11 +446,11 @@ if (mjeseciUMIZ < 0) {
 }
 
 let ukupnoGodina =
-  (z.prethodniStazGodina || 0) +
+  prethodniGodina +
   godineUMIZ;
 
 let ukupnoMjeseci =
-  (z.prethodniStazMjeseci || 0) +
+  ostatakMjeseci +
   mjeseciUMIZ;
 
 if (ukupnoMjeseci >= 12) {
