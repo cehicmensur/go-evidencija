@@ -177,57 +177,26 @@ await prisma.korisnik.create({
     res.status(500).json({ error: "Greška kod registracije" });
   }
 });
-app.get(
-  "/zaposlenici",
-  provjeriToken,
-  samoAdmin,
-  async (req, res) => {
-    try {
-      const zaposlenici = await prisma.zaposlenik.findMany({
-        include: {
-          odmori: true,
-        },
-        orderBy: {
-          ime: "asc",
-        },
-      });
+app.get("/zaposlenici-javno", async (req, res) => {
+  try {
+    const zaposlenici = await prisma.zaposlenik.findMany({
+      select: {
+        id: true,
+        ime: true,
+      },
+      orderBy: {
+        ime: "asc",
+      },
+    });
 
-      const rezultat = await Promise.all(
-        zaposlenici.map(async (z) => {
-          let iskoristeno = 0;
-
-          for (const o of z.odmori) {
-            if (
-              o.status === "odobreno" &&
-              o.odbijaSeOdGodisnjeg
-            ) {
-              iskoristeno += await brojDana(
-                o.od,
-                o.do
-              );
-            }
-          }
-
-          const ukupnoGO =
-            z.godisnji + (z.dodatniDani || 0);
-
-          return {
-            ...z,
-            iskoristeno,
-            preostalo: ukupnoGO - iskoristeno,
-          };
-        })
-      );
-
-      res.json(rezultat);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        error: "Greška kod učitavanja zaposlenika",
-      });
-    }
+    res.json(zaposlenici);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "Greška kod učitavanja zaposlenika",
+    });
   }
-);
+});
 /* LOGIN */
 app.post("/login", async (req, res) => {
   try {
@@ -236,6 +205,7 @@ app.post("/login", async (req, res) => {
     const korisnik = await prisma.korisnik.findUnique({
       where: { email },
     });
+
     if (!korisnik) {
       return res.status(400).json({ error: "Korisnik ne postoji" });
     }
@@ -277,7 +247,7 @@ app.post("/login", async (req, res) => {
 app.get("/admin/korisnici", provjeriToken, samoAdmin, async (req, res) => {
   try {
     const korisnici = await prisma.korisnik.findMany({
-      orderBy: { ime: "asc" },
+      orderBy: { id: "desc" },
       include: {
         zaposlenik: true,
       },
@@ -424,7 +394,7 @@ app.get(
       odmori: true,
       radniStazovi: true,
     },
-    orderBy: { ime: "asc" },
+    orderBy: { id: "asc" },
   });
 
       const rezultat = await Promise.all(

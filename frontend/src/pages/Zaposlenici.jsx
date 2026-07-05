@@ -11,6 +11,7 @@ function Zaposlenici() {
 const [prethodniStazMjeseci, setPrethodniStazMjeseci] = useState(0);
 const [dodatniDani, setDodatniDani] = useState(0);
 const [urediId, setUrediId] = useState(null);
+const [pretraga, setPretraga] = useState("");
 
   const token = localStorage.getItem("token");
   const API_URL = "https://go-evidencija-backend.onrender.com";
@@ -172,10 +173,20 @@ const obrisi = (id) => {
   </button>
 </div>
 
+<div className="mb-4">
+  <input
+    type="text"
+    placeholder="🔍 Pretraži zaposlenika..."
+    value={pretraga}
+    onChange={(e) => setPretraga(e.target.value)}
+    className="border border-slate-300 rounded-xl px-4 py-3 w-full md:w-96"
+  />
+</div>
       <div className="overflow-x-auto bg-white rounded-2xl shadow">
         <table className="w-full">
           <thead className="bg-slate-800 text-white">
             <tr>
+              <th className="p-4 text-left">R.br.</th>
               <th className="p-4 text-left">ID</th>
               <th className="p-4 text-left">Ime i prezime</th>
               <th className="p-4 text-left">Pozicija</th>
@@ -190,8 +201,14 @@ const obrisi = (id) => {
           </thead>
 
           <tbody>
-            {zaposlenici.map((z) => (
+            {zaposlenici
+  .filter((z) =>
+    z.ime.toLowerCase().includes(pretraga.toLowerCase()) ||
+    z.pozicija.toLowerCase().includes(pretraga.toLowerCase())
+  )
+  .map((z, index) => (
               <tr key={z.id} className="border-b">
+                <td className="p-3">{index + 1}</td>
                 <td className="p-3 font-bold">{z.id}</td>
                 <td className="p-3">{z.ime}</td>
                 <td className="p-3">{z.pozicija}</td>
