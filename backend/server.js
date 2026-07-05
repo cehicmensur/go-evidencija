@@ -183,14 +183,18 @@ app.get(
   samoAdmin,
   async (req, res) => {
     try {
-      const zaposlenici = await prisma.zaposlenik.findMany({
-        include: {
-          odmori: true,
-        },
-        orderBy: {
-          ime: "asc",
-        },
-      });
+const zaposlenici = await prisma.zaposlenik.findMany({
+  include: {
+    odmori: true,
+  },
+});
+
+zaposlenici.sort((a, b) => {
+  const prezimeA = a.ime.trim().split(" ").pop();
+  const prezimeB = b.ime.trim().split(" ").pop();
+
+  return prezimeA.localeCompare(prezimeB, "bs");
+});
 
       const rezultat = await Promise.all(
         zaposlenici.map(async (z) => {
