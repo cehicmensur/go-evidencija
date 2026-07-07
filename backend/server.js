@@ -177,61 +177,7 @@ await prisma.korisnik.create({
     res.status(500).json({ error: "Greška kod registracije" });
   }
 });
-app.get(
-  "/zaposlenici",
-  provjeriToken,
-  samoAdmin,
-  async (req, res) => {
-    try {
-const zaposlenici = await prisma.zaposlenik.findMany({
-  include: {
-    odmori: true,
-  },
-});
 
-zaposlenici.sort((a, b) => {
-  const prezimeA = a.ime.trim().split(" ").pop();
-  const prezimeB = b.ime.trim().split(" ").pop();
-
-  return prezimeA.localeCompare(prezimeB, "bs");
-});
-
-      const rezultat = await Promise.all(
-        zaposlenici.map(async (z) => {
-          let iskoristeno = 0;
-
-          for (const o of z.odmori) {
-            if (
-              o.status === "odobreno" &&
-              o.odbijaSeOdGodisnjeg
-            ) {
-              iskoristeno += await brojDana(
-                o.od,
-                o.do
-              );
-            }
-          }
-
-          const ukupnoGO =
-            z.godisnji + (z.dodatniDani || 0);
-
-          return {
-            ...z,
-            iskoristeno,
-            preostalo: ukupnoGO - iskoristeno,
-          };
-        })
-      );
-
-      res.json(rezultat);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        error: "Greška kod učitavanja zaposlenika",
-      });
-    }
-  }
-);
 /* LOGIN */
 app.post("/login", async (req, res) => {
   try {
@@ -422,118 +368,112 @@ app.get(
   samoAdmin,
   async (req, res) => {
     try {
- const zaposlenici =
-  await prisma.zaposlenik.findMany({
-    include: {
-      odmori: true,
-      radniStazovi: true,
-    },
-    orderBy: { ime: "asc" },
-  });
+      const zaposlenici = await prisma.zaposlenik.findMany({
+        include: {
+          odmori: true,
+          radniStazovi: true,
+        },
+      });
+
+      // Sortiranje po prezimenu
+      zaposlenici.sort((a, b) => {
+        const prezimeA = a.ime.trim().split(" ").pop();
+        const prezimeB = b.ime.trim().split(" ").pop();
+
+        return prezimeA.localeCompare(prezimeB, "bs");
+      });
 
       const rezultat = await Promise.all(
         zaposlenici.map(async (z) => {
           let iskoristeno = 0;
+
+          // Prethodni staž iz tabele RadniStaz
           let prethodniMjeseci = 0;
 
-for (const s of z.radniStazovi) {
-  const od = new Date(s.datumOd);
-  const _do = new Date(s.datumDo);
+          for (const s of z.radniStazovi) {
+            const od = new Date(s.datumOd);
+            const doDatum = new Date(s.datumDo);
 
-  let mjeseci =
-    (_do.getFullYear() - od.getFullYear()) * 12 +
-    (_do.getMonth() - od.getMonth());
+            let mjeseci =
+              (doDatum.getFullYear() - od.getFullYear()) * 12 +
+              (doDatum.getMonth() - od.getMonth());
 
-  prethodniMjeseci += mjeseci;
-}
+            prethodniMjeseci += mjeseci;
+          }
 
-const prethodniGodina =
-  Math.floor(prethodniMjeseci / 12);
+          const prethodniGodina = Math.floor(prethodniMjeseci / 12);
+          const ostatakMjeseci = prethodniMjeseci % 12;
 
-const ostatakMjeseci =
-  prethodniMjeseci % 12;
-
+          // Iskorišteni godišnji
           for (const o of z.odmori) {
             if (
               o.status === "odobreno" &&
-              o.vrsta === "Godišnji odmor"
+              o.odbijaSeOdGodisnjeg
             ) {
-              iskoristeno += await brojDana(
-                o.od,
-                o.do
-              );
+              iskoristeno += await brojDana(o.od, o.do);
             }
           }
 
-          const danas = new Date();
-const pocetak = new Date(z.datumPocetka);
+          // Staž u MIZ
+          let godineUMIZ = 0;
+          let mjeseciUMIZ = 0;
 
-let godineUMIZ =
-  danas.getFullYear() - pocetak.getFullYear();
+          if (z.datumPocetka) {
+            const danas = new Date();
+            const pocetak = new Date(z.datumPocetka);
 
-let mjeseciUMIZ =
-  danas.getMonth() - pocetak.getMonth();
+            godineUMIZ =
+              danas.getFullYear() - pocetak.getFullYear();
 
-if (mjeseciUMIZ < 0) {
-  godineUMIZ--;
-  mjeseciUMIZ += 12;
-}
+            mjeseciUMIZ =
+              danas.getMonth() - pocetak.getMonth();
 
-let ukupnoGodina =
-  prethodniGodina +
-  godineUMIZ;
+            if (mjeseciUMIZ < 0) {
+              godineUMIZ--;
+              mjeseciUMIZ += 12;
+            }
+          }
 
-let ukupnoMjeseci =
-  ostatakMjeseci +
-  mjeseciUMIZ;
+          // Ukupan staž
+          let ukupnoGodina = prethodniGodina + godineUMIZ;
+          let ukupnoMjeseci = ostatakMjeseci + mjeseciUMIZ;
 
-if (ukupnoMjeseci >= 12) {
-  ukupnoGodina += Math.floor(
-    ukupnoMjeseci / 12
-  );
+          if (ukupnoMjeseci >= 12) {
+            ukupnoGodina += Math.floor(ukupnoMjeseci / 12);
+            ukupnoMjeseci = ukupnoMjeseci % 12;
+          }
 
-  ukupnoMjeseci =
-    ukupnoMjeseci % 12;
-}
+          const ukupnoGO =
+            z.godisnji + (z.dodatniDani || 0);
+
+            console.log({
+  ime: z.ime,
+  datumPocetka: z.datumPocetka,
+  godineUMIZ,
+  mjeseciUMIZ,
+  ukupnoGodina,
+  ukupnoMjeseci,
+});
+
           return {
-            id: z.id,
-            ime: z.ime,
-            pozicija: z.pozicija,
-            datumPocetka: z.datumPocetka,
+            ...z,
             ukupnoGodina,
-ukupnoMjeseci,
-
-            godisnji: z.godisnji,
-            dodatniDani: z.dodatniDani || 0,
-
-            prethodniStazGodina:
-              z.prethodniStazGodina || 0,
-
-            prethodniStazMjeseci:
-              z.prethodniStazMjeseci || 0,
-
+            ukupnoMjeseci,
             iskoristeno,
-
-            preostalo:
-              z.godisnji +
-              (z.dodatniDani || 0) -
-              iskoristeno,
+            preostalo: ukupnoGO - iskoristeno,
           };
         })
       );
-      console.log(zaposlenici);
 
       res.json(rezultat);
     } catch (error) {
       console.error(error);
       res.status(500).json({
-        error:
-          "Greška kod učitavanja zaposlenika",
+        error: "Greška kod učitavanja zaposlenika",
       });
     }
   }
 );
-
 app.post("/zaposlenici", provjeriToken, samoAdmin, async (req, res) => {
   try {
     const {
@@ -551,22 +491,16 @@ app.post("/zaposlenici", provjeriToken, samoAdmin, async (req, res) => {
       prethodniStazMjeseci
     );
 
-console.log(req.body);
     const novi = await prisma.zaposlenik.create({
       data: {
         ime,
         pozicija,
-
         datumPocetka: new Date(datumPocetka),
-
         godisnji,
-
         prethodniStazGodina:
           Number(prethodniStazGodina) || 0,
-
         prethodniStazMjeseci:
           Number(prethodniStazMjeseci) || 0,
-
         dodatniDani:
           Number(dodatniDani) || 0,
       },

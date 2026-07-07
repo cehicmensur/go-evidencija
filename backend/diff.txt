@@ -1,0 +1,110 @@
+diff --git a/backend/server.js b/backend/server.js
+index 83ee007..82d0413 100644
+--- a/backend/server.js
++++ b/backend/server.js
+@@ -177,26 +177,61 @@ await prisma.korisnik.create({
+     res.status(500).json({ error: "Greška kod registracije" });
+   }
+ });
+-app.get("/zaposlenici-javno", async (req, res) => {
+-  try {
+-    const zaposlenici = await prisma.zaposlenik.findMany({
+-      select: {
+-        id: true,
+-        ime: true,
+-      },
+-      orderBy: {
+-        ime: "asc",
+-      },
+-    });
++app.get(
++  "/zaposlenici",
++  provjeriToken,
++  samoAdmin,
++  async (req, res) => {
++    try {
++const zaposlenici = await prisma.zaposlenik.findMany({
++  include: {
++    odmori: true,
++  },
++});
+ 
+-    res.json(zaposlenici);
+-  } catch (error) {
+-    console.error(error);
+-    res.status(500).json({
+-      error: "Greška kod učitavanja zaposlenika",
+-    });
+-  }
++zaposlenici.sort((a, b) => {
++  const prezimeA = a.ime.trim().split(" ").pop();
++  const prezimeB = b.ime.trim().split(" ").pop();
++
++  return prezimeA.localeCompare(prezimeB, "bs");
+ });
++
++      const rezultat = await Promise.all(
++        zaposlenici.map(async (z) => {
++          let iskoristeno = 0;
++
++          for (const o of z.odmori) {
++            if (
++              o.status === "odobreno" &&
++              o.odbijaSeOdGodisnjeg
++            ) {
++              iskoristeno += await brojDana(
++                o.od,
++                o.do
++              );
++            }
++          }
++
++          const ukupnoGO =
++            z.godisnji + (z.dodatniDani || 0);
++
++          return {
++            ...z,
++            iskoristeno,
++            preostalo: ukupnoGO - iskoristeno,
++          };
++        })
++      );
++
++      res.json(rezultat);
++    } catch (error) {
++      console.error(error);
++      res.status(500).json({
++        error: "Greška kod učitavanja zaposlenika",
++      });
++    }
++  }
++);
+ /* LOGIN */
+ app.post("/login", async (req, res) => {
+   try {
+@@ -205,7 +240,6 @@ app.post("/login", async (req, res) => {
+     const korisnik = await prisma.korisnik.findUnique({
+       where: { email },
+     });
+-
+     if (!korisnik) {
+       return res.status(400).json({ error: "Korisnik ne postoji" });
+     }
+@@ -247,7 +281,7 @@ app.post("/login", async (req, res) => {
+ app.get("/admin/korisnici", provjeriToken, samoAdmin, async (req, res) => {
+   try {
+     const korisnici = await prisma.korisnik.findMany({
+-      orderBy: { id: "desc" },
++      orderBy: { ime: "asc" },
+       include: {
+         zaposlenik: true,
+       },
+@@ -394,7 +428,7 @@ app.get(
+       odmori: true,
+       radniStazovi: true,
+     },
+-    orderBy: { id: "asc" },
++    orderBy: { ime: "asc" },
+   });
+ 
+       const rezultat = await Promise.all(
