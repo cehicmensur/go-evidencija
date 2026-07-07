@@ -414,51 +414,59 @@ app.get(
             }
           }
 
-          // Staž u MIZ
-          let godineUMIZ = 0;
-          let mjeseciUMIZ = 0;
+ // Staž u MIZ
+let godineUMIZ = 0;
+let mjeseciUMIZ = 0;
+let daniUMIZ = 0;
 
-          if (z.datumPocetka) {
-            const danas = new Date();
-            const pocetak = new Date(z.datumPocetka);
+if (z.datumPocetka) {
+  const danas = new Date();
+  const pocetak = new Date(z.datumPocetka);
 
-            godineUMIZ =
-              danas.getFullYear() - pocetak.getFullYear();
+  let godine = danas.getFullYear() - pocetak.getFullYear();
+  let mjeseci = danas.getMonth() - pocetak.getMonth();
+  let dani = danas.getDate() - pocetak.getDate();
 
-            mjeseciUMIZ =
-              danas.getMonth() - pocetak.getMonth();
+  if (dani < 0) {
+    mjeseci--;
 
-            if (mjeseciUMIZ < 0) {
-              godineUMIZ--;
-              mjeseciUMIZ += 12;
-            }
-          }
+    const zadnjiDanProslogMjeseca = new Date(
+      danas.getFullYear(),
+      danas.getMonth(),
+      0
+    ).getDate();
 
-          // Ukupan staž
-          let ukupnoGodina = prethodniGodina + godineUMIZ;
-          let ukupnoMjeseci = ostatakMjeseci + mjeseciUMIZ;
+    dani += zadnjiDanProslogMjeseca;
+  }
 
-          if (ukupnoMjeseci >= 12) {
-            ukupnoGodina += Math.floor(ukupnoMjeseci / 12);
-            ukupnoMjeseci = ukupnoMjeseci % 12;
-          }
+  if (mjeseci < 0) {
+    godine--;
+    mjeseci += 12;
+  }
 
-          const ukupnoGO =
-            z.godisnji + (z.dodatniDani || 0);
+  godineUMIZ = godine;
+  mjeseciUMIZ = mjeseci;
+  daniUMIZ = dani;
+}
 
-            console.log({
-  ime: z.ime,
-  datumPocetka: z.datumPocetka,
-  godineUMIZ,
-  mjeseciUMIZ,
-  ukupnoGodina,
-  ukupnoMjeseci,
-});
+// Ukupan staž
+let ukupnoGodina = prethodniGodina + godineUMIZ;
+let ukupnoMjeseci = ostatakMjeseci + mjeseciUMIZ;
+let ukupnoDana = daniUMIZ;
 
+if (ukupnoMjeseci >= 12) {
+  ukupnoGodina += Math.floor(ukupnoMjeseci / 12);
+  ukupnoMjeseci = ukupnoMjeseci % 12;
+}
+
+const ukupnoGO =
+  z.godisnji + (z.dodatniDani || 0);
+  
           return {
             ...z,
             ukupnoGodina,
             ukupnoMjeseci,
+            ukupnoDana,
             iskoristeno,
             preostalo: ukupnoGO - iskoristeno,
           };
