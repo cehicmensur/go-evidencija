@@ -35,6 +35,7 @@ mjeseciARBiH          Int      @default(0)
   korisnik Korisnik?
 
   radniStazovi RadniStaz[]
+  obracuni GodisnjiObracun[]
 }
 
 model RadniStaz {
@@ -88,4 +89,33 @@ model AuditLog {
   akcija    String
   detalji   String?
   createdAt DateTime @default(now())
+}
+
+model GodisnjiObracun {
+  id Int @id @default(autoincrement())
+
+  godina Int
+
+  zaposlenikId Int
+  zaposlenik Zaposlenik @relation(fields: [zaposlenikId], references: [id])
+
+  osnovica Int @default(20)
+
+  dodatakStaz Int @default(0)
+  dodatakDjeca Int @default(0)
+  dodatakRadnoMjesto Int @default(0)
+  dodatakRezultatRada Int @default(0)
+  dodatakARBiH Int @default(0)
+
+  ukupnoDana Int
+
+  brojDjeceU15 Int @default(0)
+  samohraniRoditelj Boolean @default(false)
+  invaliditet Boolean @default(false)
+
+  nivoSluzbenickogMjesta String
+  ocjenaRezultata String
+  mjeseciARBiH Int @default(0)
+
+  datumObracuna DateTime @default(now())
 }

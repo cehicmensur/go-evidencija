@@ -201,12 +201,15 @@ await prisma.korisnik.create({
       message:
         "Registracija zaprimljena. Sačekajte da administrator odobri pristup.",
     });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Greška kod registracije" });
-  }
-});
+} catch (error) {
+  console.error("GRESKA /zaposlenici:");
+  console.error(error);
 
+  res.status(500).json({
+    error: error.message,
+  });
+}
+});
 /* LOGIN */
 app.post("/login", async (req, res) => {
   try {
@@ -988,4 +991,4 @@ const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
   console.log(`Server radi na portu ${PORT}`);
-});
+})
