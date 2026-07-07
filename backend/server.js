@@ -388,21 +388,39 @@ app.get(
           let iskoristeno = 0;
 
           // Prethodni staž iz tabele RadniStaz
-          let prethodniMjeseci = 0;
+let prethodniGodina = 0;
+let prethodniMjeseci = 0;
+let prethodniDani = 0;
 
-          for (const s of z.radniStazovi) {
-            const od = new Date(s.datumOd);
-            const doDatum = new Date(s.datumDo);
+for (const s of z.radniStazovi) {
+  const od = new Date(s.datumOd);
+  const doDatum = new Date(s.datumDo);
 
-            let mjeseci =
-              (doDatum.getFullYear() - od.getFullYear()) * 12 +
-              (doDatum.getMonth() - od.getMonth());
+  let godine = doDatum.getFullYear() - od.getFullYear();
+  let mjeseci = doDatum.getMonth() - od.getMonth();
+  let dani = doDatum.getDate() - od.getDate();
 
-            prethodniMjeseci += mjeseci;
-          }
+  if (dani < 0) {
+    mjeseci--;
 
-          const prethodniGodina = Math.floor(prethodniMjeseci / 12);
-          const ostatakMjeseci = prethodniMjeseci % 12;
+    const zadnjiDan = new Date(
+      doDatum.getFullYear(),
+      doDatum.getMonth(),
+      0
+    ).getDate();
+
+    dani += zadnjiDan;
+  }
+
+  if (mjeseci < 0) {
+    godine--;
+    mjeseci += 12;
+  }
+
+  prethodniGodina += godine;
+  prethodniMjeseci += mjeseci;
+  prethodniDani += dani;
+}
 
           // Iskorišteni godišnji
           for (const o of z.odmori) {
@@ -451,8 +469,18 @@ if (z.datumPocetka) {
 
 // Ukupan staž
 let ukupnoGodina = prethodniGodina + godineUMIZ;
-let ukupnoMjeseci = ostatakMjeseci + mjeseciUMIZ;
-let ukupnoDana = daniUMIZ;
+let ukupnoMjeseci = prethodniMjeseci + mjeseciUMIZ;
+let ukupnoDana = prethodniDani + daniUMIZ;
+
+while (ukupnoDana >= 30) {
+  ukupnoDana -= 30;
+  ukupnoMjeseci++;
+}
+
+while (ukupnoMjeseci >= 12) {
+  ukupnoMjeseci -= 12;
+  ukupnoGodina++;
+}
 
 if (ukupnoMjeseci >= 12) {
   ukupnoGodina += Math.floor(ukupnoMjeseci / 12);
@@ -461,7 +489,7 @@ if (ukupnoMjeseci >= 12) {
 
 const ukupnoGO =
   z.godisnji + (z.dodatniDani || 0);
-  
+
           return {
             ...z,
             ukupnoGodina,
