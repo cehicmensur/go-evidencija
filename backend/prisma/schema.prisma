@@ -22,6 +22,15 @@ model Zaposlenik {
 
   dodatniDani Int @default(0)
 
+brojDjeceU15          Int      @default(0)
+samohraniRoditelj     Boolean  @default(false)
+invaliditet           Boolean  @default(false)
+
+nivoSluzbenickogMjesta String  @default("ostalo")
+ocjenaRezultata        String  @default("bez")
+
+mjeseciARBiH          Int      @default(0)
+
   odmori   GodisnjiOdmor[]
   korisnik Korisnik?
 

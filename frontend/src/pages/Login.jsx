@@ -118,11 +118,18 @@ function Login() {
                 Odaberi ime i prezime
               </option>
 
-              {zaposlenici.map((z) => (
-                <option key={z.id} value={z.id}>
-                  {z.ime}
-                </option>
-              ))}
+{zaposlenici.map((z) => {
+  const dijelovi = z.ime.trim().split(" ");
+
+  const prezime = dijelovi.pop();
+  const ime = dijelovi.join(" ");
+
+  return (
+    <option key={z.id} value={z.id}>
+      {prezime}, {ime}
+    </option>
+  );
+})}
             </select>
           )}
 

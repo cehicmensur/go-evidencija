@@ -14,8 +14,7 @@ const [urediId, setUrediId] = useState(null);
 const [pretraga, setPretraga] = useState("");
 
   const token = localStorage.getItem("token");
-  const API_URL = "https://go-evidencija-backend.onrender.com";
-
+const API_URL = "http://localhost:3000";
   const ucitaj = () => {
     fetch(`${API_URL}/zaposlenici`, {
       headers: {
@@ -218,8 +217,11 @@ const obrisi = (id) => {
     : "-"}
 </td>
 <td className="p-3">
-  {z.ukupnoGodina || 0} g.
-  {z.ukupnoMjeseci || 0} mj.
+{z.ukupnoGodina || 0} g.
+{" "}
+{z.ukupnoMjeseci || 0} mj.
+{" "}
+{z.ukupnoDana || 0} d.
 </td>
 
 <td className="p-3">
