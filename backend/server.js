@@ -141,9 +141,17 @@ app.get("/zaposlenici-javno", async (req, res) => {
         id: true,
         ime: true,
       },
-      orderBy: {
-        ime: "asc",
-      },
+    });
+
+    zaposlenici.sort((a, b) => {
+      const prezimeA = a.ime.trim().split(" ").pop();
+      const prezimeB = b.ime.trim().split(" ").pop();
+
+      const rezultat = prezimeA.localeCompare(prezimeB, "bs");
+
+      if (rezultat !== 0) return rezultat;
+
+      return a.ime.localeCompare(b.ime, "bs");
     });
 
     res.json(zaposlenici);
