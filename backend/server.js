@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const { PrismaClient } = require("@prisma/client");
@@ -6,6 +8,15 @@ const jwt = require("jsonwebtoken");
 const { Resend } = require("resend");
 
 const prisma = new PrismaClient();
+(async () => {
+  try {
+    await prisma.$connect();
+    console.log("✅ Prisma CONNECT OK");
+  } catch (err) {
+    console.error("❌ Prisma CONNECT ERROR");
+    console.error(err);
+  }
+})();
 const app = express();
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -130,8 +141,10 @@ if (zaposlenik.datumPocetka) {
 }
 
 const ukupnoGodina =
-  godineUMIZ +
-  (zaposlenik.prethodniStazGodina || 0);
+  zaposlenik.ukupnoGodina ?? (
+    godineUMIZ +
+    (zaposlenik.prethodniStazGodina || 0)
+  );
 
   if (ukupnoGodina >= 20) dodatakStaz = 10;
   else if (ukupnoGodina >= 15) dodatakStaz = 8;
@@ -275,6 +288,64 @@ function brojDana(od, doDatuma, praznici) {
   }
 
   return broj;
+}
+function izracunajPeriod(datumOd, datumDo) {
+  const od = new Date(datumOd);
+  const doDatum = new Date(datumDo);
+
+  let godine = doDatum.getFullYear() - od.getFullYear();
+  let mjeseci = doDatum.getMonth() - od.getMonth();
+  let dani = doDatum.getDate() - od.getDate();
+
+  if (dani < 0) {
+    mjeseci--;
+
+    const zadnjiDan = new Date(
+      doDatum.getFullYear(),
+      doDatum.getMonth(),
+      0
+    ).getDate();
+
+    dani += zadnjiDan;
+  }
+
+  if (mjeseci < 0) {
+    godine--;
+    mjeseci += 12;
+  }
+
+  return {
+    godine,
+    mjeseci,
+    dani,
+  };
+}
+function saberiTrajanje(lista) {
+  let godine = 0;
+  let mjeseci = 0;
+  let dani = 0;
+
+  for (const stavka of lista) {
+    godine += stavka.godine;
+    mjeseci += stavka.mjeseci;
+    dani += stavka.dani;
+  }
+
+  while (dani >= 30) {
+    dani -= 30;
+    mjeseci++;
+  }
+
+  while (mjeseci >= 12) {
+    mjeseci -= 12;
+    godine++;
+  }
+
+  return {
+    godine,
+    mjeseci,
+    dani,
+  };
 }
 
 app.get("/zaposlenici-javno", async (req, res) => {
@@ -690,9 +761,7 @@ app.get(
               ukupnoMjeseci % 12;
           }
 
-          const ukupnoGO =
-            z.godisnji +
-            (z.dodatniDani || 0);
+const ukupnoGO = z.godisnji;
 
           return {
             ...z,
@@ -869,9 +938,9 @@ app.get(
         zaposlenik.godisnji +
         (zaposlenik.dodatniDani || 0);
 
-        const obracun = izracunajGodisnjiPoPravilniku({
+const obracun = izracunajGodisnjiPoPravilniku({
   ...zaposlenik,
-  godineUMIZ,
+  ukupnoGodina,
 });
 
       res.json({
@@ -913,11 +982,59 @@ app.post("/zaposlenici", provjeriToken, samoAdmin, async (req, res) => {
       dodatniDani,
     } = req.body;
 
-    const godisnji = izracunajGodisnji(
-      datumPocetka,
-      prethodniStazGodina,
-      prethodniStazMjeseci
-    );
+const stari = await prisma.zaposlenik.findUnique({
+  where: {
+    id: Number(id),
+  },
+  include: {
+    radniStazovi: true,
+  },
+});
+
+const prethodni = stari.radniStazovi.reduce(
+  (ukupno, s) => {
+    const od = new Date(s.datumOd);
+    const doDatum = new Date(s.datumDo);
+
+    let godine =
+      doDatum.getFullYear() - od.getFullYear();
+
+    if (
+      doDatum.getMonth() < od.getMonth() ||
+      (doDatum.getMonth() === od.getMonth() &&
+        doDatum.getDate() < od.getDate())
+    ) {
+      godine--;
+    }
+
+    return ukupno + godine;
+  },
+  0
+);
+
+const godineUMIZ = izracunajGodisnji(
+  datumPocetka,
+  0,
+  0
+);
+
+const godisnji =
+  izracunajGodisnjiPoPravilniku({
+    datumPocetka,
+    ukupnoGodina:
+      prethodni +
+      (godineUMIZ - 20),
+    brojDjeceU15:
+      Number(brojDjeceU15) || 0,
+    invaliditet:
+      Boolean(invaliditet),
+    mjeseciARBiH:
+      Number(mjeseciARBiH) || 0,
+    nivoSluzbenickogMjesta,
+    ocjenaRezultata,
+    samohraniRoditelj:
+      Boolean(samohraniRoditelj),
+  }).ukupno;
 
     const novi = await prisma.zaposlenik.create({
       data: {
