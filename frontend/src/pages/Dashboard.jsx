@@ -4,6 +4,7 @@ function Dashboard() {
 const [zaposlenici, setZaposlenici] = useState([]);
 const [odsustva, setOdsustva] = useState([]);
 const [greska, setGreska] = useState("");
+const [prikaziOdsutne, setPrikaziOdsutne] = useState(false);
 
 const token = localStorage.getItem("token");
 const korisnik = JSON.parse(localStorage.getItem("korisnik"));
@@ -92,7 +93,16 @@ const ukupnoZahtjeva = odsustva.length;
 
 const danas = new Date();
 
-const trenutnoNaOdsustvu = odsustva.filter((o) => {
+const ovajMjesec = odsustva.filter((o) => {
+  const datum = new Date(o.od);
+
+  return (
+    datum.getMonth() === danas.getMonth() &&
+    datum.getFullYear() === danas.getFullYear()
+  );
+}).length;
+
+const listaTrenutnoOdsutnih = odsustva.filter((o) => {
   if (!o) return false;
 
   if (o.status !== "odobreno") return false;
@@ -107,7 +117,19 @@ const trenutnoNaOdsustvu = odsustva.filter((o) => {
   }
 
   return danas >= od && danas <= doDatum;
-}).length;
+});
+
+const trenutnoNaOdsustvu = listaTrenutnoOdsutnih.length;
+const sljedecaOdsustva = [...odsustva]
+  .filter((o) => {
+    if (o.status !== "odobreno") return false;
+
+    const od = new Date(o.od);
+
+    return od > danas;
+  })
+  .sort((a, b) => new Date(a.od) - new Date(b.od))
+  .slice(0, 5);
 
 return ( 
 <div> 
@@ -134,45 +156,26 @@ Dashboard </h1>
           {ukupnoZaposlenika}
         </h2>
       </div>
-
-      <div className="bg-white rounded-2xl shadow p-6">
-        <p className="text-slate-500 mb-2">
-          Ukupno GO
-        </p>
-        <h2 className="text-5xl font-bold text-slate-800">
-          {ukupnoGO}
-        </h2>
-      </div>
-
-      <div className="bg-white rounded-2xl shadow p-6">
-        <p className="text-slate-500 mb-2">
-          Iskorišteno
-        </p>
-        <h2 className="text-5xl font-bold text-orange-600">
-          {ukupnoIskoristeno}
-        </h2>
-      </div>
-
-      <div className="bg-white rounded-2xl shadow p-6">
-        <p className="text-slate-500 mb-2">
-          Preostalo
-        </p>
-        <h2 className="text-5xl font-bold text-emerald-700">
-          {ukupnoPreostalo}
-        </h2>
-      </div>
     </div>
   )}
 
   <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
-    <div className="bg-white rounded-2xl shadow p-6">
-      <p className="text-slate-500 mb-2">
-        Trenutno na odsustvu
-      </p>
-      <h2 className="text-5xl font-bold text-blue-600">
-        {trenutnoNaOdsustvu}
-      </h2>
-    </div>
+<div
+  onClick={() => setPrikaziOdsutne(true)}
+  className="bg-white rounded-2xl shadow p-6 cursor-pointer hover:bg-blue-50 transition"
+>
+  <p className="text-slate-500 mb-2">
+    Trenutno na odsustvu
+  </p>
+
+  <h2 className="text-5xl font-bold text-blue-600">
+    {trenutnoNaOdsustvu}
+  </h2>
+
+  <p className="text-xs text-slate-400 mt-2">
+    Klikni za pregled zaposlenika
+  </p>
+</div>
 
     <div className="bg-white rounded-2xl shadow p-6">
       <p className="text-slate-500 mb-2">
@@ -185,24 +188,6 @@ Dashboard </h1>
 
     <div className="bg-white rounded-2xl shadow p-6">
       <p className="text-slate-500 mb-2">
-        Odobreno
-      </p>
-      <h2 className="text-5xl font-bold text-emerald-700">
-        {odobreno}
-      </h2>
-    </div>
-
-    <div className="bg-white rounded-2xl shadow p-6">
-      <p className="text-slate-500 mb-2">
-        Odbijeno
-      </p>
-      <h2 className="text-5xl font-bold text-red-600">
-        {odbijeno}
-      </h2>
-    </div>
-
-    <div className="bg-white rounded-2xl shadow p-6">
-      <p className="text-slate-500 mb-2">
         Ukupno zahtjeva
       </p>
       <h2 className="text-5xl font-bold text-slate-800">
@@ -210,54 +195,140 @@ Dashboard </h1>
       </h2>
     </div>
   </div>
+<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
 
   <div className="bg-white rounded-2xl shadow p-6">
-    <h2 className="text-2xl font-bold mb-4">
-      Zadnja odsustva
+    <h2 className="text-xl font-bold mb-4 text-green-700">
+      Trenutno na odsustvu
     </h2>
 
-    <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead className="bg-slate-800 text-white">
-          <tr>
-            <th className="p-3 text-left">
-              Zaposlenik
-            </th>
-            <th className="p-3 text-left">
-              Vrsta
-            </th>
-            <th className="p-3 text-left">
-              Status
-            </th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {odsustva.slice(0, 5).map((o) => (
-            <tr key={o.id} className="border-b">
-              <td className="p-3">
-                {o.zaposlenik?.ime || korisnik?.ime}
-              </td>
-
-              <td className="p-3">
-                {o.vrsta || "Godišnji odmor"}
-              </td>
-
-              <td className="p-3 font-semibold">
-                {o.status}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-
-    {odsustva.length === 0 && (
-      <p className="text-slate-500 mt-4">
-        Nema evidentiranih odsustava.
+    {listaTrenutnoOdsutnih.length === 0 ? (
+      <p className="text-slate-500">
+        Nema zaposlenika na odsustvu.
       </p>
+    ) : (
+[...listaTrenutnoOdsutnih]
+  .sort((a, b) => new Date(a.do) - new Date(b.do))
+  .map((o) => (
+        <div
+          key={o.id}
+          className="flex justify-between items-center border-b py-2"
+        >
+          <div>
+            <div className="font-semibold">
+              {o.zaposlenik?.ime}
+            </div>
+
+            <div className="text-sm text-slate-500">
+              {o.vrsta}
+            </div>
+          </div>
+
+          <div className="text-sm text-slate-600">
+            do {new Date(o.do).toLocaleDateString("bs-BA")}
+          </div>
+        </div>
+      ))
     )}
   </div>
+
+  <div className="bg-white rounded-2xl shadow p-6">
+    <h2 className="text-xl font-bold mb-4 text-blue-700">
+      Sljedeća odsustva
+    </h2>
+
+    {sljedecaOdsustva.length === 0 ? (
+      <p className="text-slate-500">
+        Nema planiranih odsustava.
+      </p>
+    ) : (
+      sljedecaOdsustva.map((o) => (
+        <div
+          key={o.id}
+          className="flex justify-between items-center border-b py-2"
+        >
+          <div>
+            <div className="font-semibold">
+              {o.zaposlenik?.ime}
+            </div>
+
+            <div className="text-sm text-slate-500">
+              {o.vrsta}
+            </div>
+          </div>
+
+<div className="text-sm text-slate-600 text-right">
+  <div>
+    {new Date(o.od).toLocaleDateString("bs-BA")}
+  </div>
+  <div>
+    {new Date(o.do).toLocaleDateString("bs-BA")}
+  </div>
+</div>
+        </div>
+      ))
+    )}
+  </div>
+
+</div>
+
+  {prikaziOdsutne && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl p-6">
+
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold">
+          Trenutno odsutni zaposlenici
+        </h2>
+
+        <button
+          onClick={() => setPrikaziOdsutne(false)}
+          className="text-red-600 text-2xl font-bold"
+        >
+          ×
+        </button>
+      </div>
+
+      {listaTrenutnoOdsutnih.length === 0 ? (
+        <p className="text-slate-500">
+          Trenutno nema zaposlenika na odsustvu.
+        </p>
+      ) : (
+        <table className="w-full">
+          <thead className="bg-slate-800 text-white">
+            <tr>
+              <th className="p-3 text-left">Zaposlenik</th>
+              <th className="p-3 text-left">Vrsta</th>
+              <th className="p-3 text-left">Od</th>
+              <th className="p-3 text-left">Do</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {listaTrenutnoOdsutnih.map((o) => (
+              <tr key={o.id} className="border-b">
+                <td className="p-3">{o.zaposlenik?.ime}</td>
+
+                <td className="p-3">
+                  {o.vrsta || "Godišnji odmor"}
+                </td>
+
+                <td className="p-3">
+                  {new Date(o.od).toLocaleDateString("bs-BA")}
+                </td>
+
+                <td className="p-3">
+                  {new Date(o.do).toLocaleDateString("bs-BA")}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  </div>
+)}
+
     </div>
   );
 }

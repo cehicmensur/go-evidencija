@@ -181,8 +181,11 @@ function Godisnji() {
     );
   }
 };
-  const filtriraniZahtjevi = useMemo(() => {
-    return zahtjevi.filter((z) => {
+const filtriraniZahtjevi = useMemo(() => {
+  const danas = new Date();
+
+  return zahtjevi
+    .filter((z) => {
       const matchStatus =
         !filterStatus || z.status === filterStatus;
 
@@ -195,8 +198,51 @@ function Godisnji() {
         ime.toLowerCase().includes(pretraga.toLowerCase());
 
       return matchStatus && matchVrsta && matchPretraga;
+    })
+    .sort((a, b) => {
+      const aOd = new Date(a.od);
+      const aDo = new Date(a.do);
+
+      const bOd = new Date(b.od);
+      const bDo = new Date(b.do);
+
+      const aAktivan =
+        a.status === "odobreno" &&
+        danas >= aOd &&
+        danas <= aDo;
+
+      const bAktivan =
+        b.status === "odobreno" &&
+        danas >= bOd &&
+        danas <= bDo;
+
+if (aAktivan && bAktivan) {
+  return aOd - bOd;
+}
+
+if (aAktivan !== bAktivan) {
+  return aAktivan ? -1 : 1;
+}
+
+      const aBuduci =
+        a.status === "odobreno" &&
+        aOd > danas;
+
+      const bBuduci =
+        b.status === "odobreno" &&
+        bOd > danas;
+
+      if (aBuduci !== bBuduci) {
+        return aBuduci ? -1 : 1;
+      }
+
+      if (aBuduci && bBuduci) {
+        return aOd - bOd;
+      }
+
+return bOd - aOd;
     });
-  }, [zahtjevi, filterStatus, filterVrsta, pretraga]);
+}, [zahtjevi, filterStatus, filterVrsta, pretraga]);
 
   return (
     <div>
@@ -390,9 +436,87 @@ function Godisnji() {
             </tr>
           </thead>
 
-          <tbody>
-            {filtriraniZahtjevi.map((z) => (
-              <tr key={z.id} className="border-b">
+<tbody>
+  {[...filtriraniZahtjevi]
+.sort((a, b) => {
+  const danas = new Date();
+
+  const aOd = new Date(a.od);
+  const aDo = new Date(a.do);
+
+  const bOd = new Date(b.od);
+  const bDo = new Date(b.do);
+
+  // Aktivna odsustva
+  const aAktivan =
+    a.status === "odobreno" &&
+    danas >= aOd &&
+    danas <= aDo;
+
+  const bAktivan =
+    b.status === "odobreno" &&
+    danas >= bOd &&
+    danas <= bDo;
+
+  if (aAktivan && !bAktivan) return -1;
+  if (!aAktivan && bAktivan) return 1;
+
+  if (aAktivan && bAktivan) {
+    return aOd - bOd;
+  }
+
+  // Buduća odsustva
+  const aBuduci =
+    a.status === "odobreno" &&
+    aOd > danas;
+
+  const bBuduci =
+    b.status === "odobreno" &&
+    bOd > danas;
+
+  if (aBuduci && !bBuduci) return -1;
+  if (!aBuduci && bBuduci) return 1;
+
+  if (aBuduci && bBuduci) {
+    return aOd - bOd;
+  }
+
+  // Završena i ostala odsustva
+  return bOd - aOd;
+})
+    .map((z) => (
+<tr
+  key={z.id}
+  className={`border-b ${
+    (() => {
+      const danas = new Date();
+
+      const od = new Date(z.od);
+      const doDatum = new Date(z.do);
+
+      if (
+        z.status === "odobreno" &&
+        danas >= od &&
+        danas <= doDatum
+      ) {
+        return "bg-green-50";
+      }
+
+      if (
+        z.status === "odobreno" &&
+        od > danas
+      ) {
+        return "bg-yellow-50";
+      }
+
+      if (z.status === "odbijeno") {
+        return "bg-red-50";
+      }
+
+      return "";
+    })()
+  }`}
+>
                 <td className="p-3">
                   {z.zaposlenik?.ime}
                 </td>

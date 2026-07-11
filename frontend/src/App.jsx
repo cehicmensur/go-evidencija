@@ -3,14 +3,15 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Zaposlenici from "./pages/Zaposlenici";
+import KartonZaposlenika from "./pages/KartonZaposlenika";
 import Godisnji from "./pages/Godisnji";
 import Korisnici from "./pages/Korisnici";
 import DokumentOdsustva from "./pages/DokumentOdsustva";
 import Kalendar from "./pages/Kalendar";
 import NeradniDani from "./pages/NeradniDani";
 import RadniStaz from "./pages/RadniStaz";
-
 import Sidebar from "./components/Sidebar";
+
 
 function App() {
   const token = localStorage.getItem("token");
@@ -49,6 +50,10 @@ function App() {
                 )
               }
             />
+            <Route
+  path="/zaposlenici/:id"
+  element={<KartonZaposlenika />}
+/>
 
 <Route
   path="/radni-staz"
