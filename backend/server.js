@@ -92,15 +92,161 @@ function izracunajGodisnji(
   return 30;
 }
 
-async function brojDana(od, doDatuma) {
+function izracunajGodisnjiPoPravilniku(zaposlenik) {
+  const osnovica = 20;
+
+  let dodatakStaz = 0;
+  let dodatakDjeca = 0;
+  let dodatakInvaliditet = 0;
+  let dodatakARBiH = 0;
+  let dodatakMjesto = 0;
+  let dodatakOcjena = 0;
+
+  // ==========================
+  // STAŽ
+  // ==========================
+
+let godineUMIZ = 0;
+
+if (zaposlenik.datumPocetka) {
+  const danas = new Date();
+  const pocetak = new Date(zaposlenik.datumPocetka);
+
+  godineUMIZ =
+    danas.getFullYear() -
+    pocetak.getFullYear();
+
+  const mjesec =
+    danas.getMonth() -
+    pocetak.getMonth();
+
+  if (
+    mjesec < 0 ||
+    (mjesec === 0 &&
+      danas.getDate() < pocetak.getDate())
+  ) {
+    godineUMIZ--;
+  }
+}
+
+const ukupnoGodina =
+  godineUMIZ +
+  (zaposlenik.prethodniStazGodina || 0);
+
+  if (ukupnoGodina >= 20) dodatakStaz = 10;
+  else if (ukupnoGodina >= 15) dodatakStaz = 8;
+  else if (ukupnoGodina >= 10) dodatakStaz = 6;
+  else if (ukupnoGodina >= 5) dodatakStaz = 4;
+  else if (ukupnoGodina >= 3) dodatakStaz = 2;
+
+  // ==========================
+  // DJECA
+  // ==========================
+
+  const djeca = zaposlenik.brojDjeceU15 || 0;
+
+  if (zaposlenik.samohraniRoditelj) {
+    if (djeca >= 3) dodatakDjeca = 4;
+    else if (djeca === 2) dodatakDjeca = 3;
+    else if (djeca === 1) dodatakDjeca = 2;
+  } else {
+    if (djeca >= 3) dodatakDjeca = 3;
+    else if (djeca === 2) dodatakDjeca = 2;
+    else if (djeca === 1) dodatakDjeca = 1;
+  }
+
+  // ==========================
+  // INVALIDITET
+  // ==========================
+
+  if (zaposlenik.invaliditet)
+    dodatakInvaliditet = 2;
+
+  // ==========================
+  // ARBiH
+  // ==========================
+
+  const mjeseci =
+    zaposlenik.mjeseciARBiH || 0;
+
+  if (mjeseci >= 30)
+    dodatakARBiH = 3;
+  else if (mjeseci >= 18)
+    dodatakARBiH = 2;
+  else if (mjeseci >= 12)
+    dodatakARBiH = 1;
+
+  // ==========================
+  // SLUŽBENIČKO MJESTO
+  // ==========================
+
+  switch (zaposlenik.nivoSluzbenickogMjesta) {
+    case "Stručni saradnik":
+      dodatakMjesto = 1;
+      break;
+
+    case "Viši stručni saradnik":
+      dodatakMjesto = 2;
+      break;
+
+    case "Stručni savjetnik":
+      dodatakMjesto = 3;
+      break;
+
+    case "Voditelj / šef":
+      dodatakMjesto = 4;
+      break;
+
+    case "Rukovodeći službenik":
+      dodatakMjesto = 5;
+      break;
+  }
+
+  // ==========================
+  // OCJENA
+  // ==========================
+
+  switch (zaposlenik.ocjenaRezultata) {
+    case "Uspješan":
+      dodatakOcjena = 1;
+      break;
+
+    case "Naročito uspješan":
+      dodatakOcjena = 2;
+      break;
+
+    case "Izuzetan doprinos":
+      dodatakOcjena = 3;
+      break;
+  }
+
+  let ukupno =
+    osnovica +
+    dodatakStaz +
+    dodatakDjeca +
+    dodatakInvaliditet +
+    dodatakARBiH +
+    dodatakMjesto +
+    dodatakOcjena;
+
+  if (ukupno > 35)
+    ukupno = 35;
+
+  return {
+    osnovica,
+    dodatakStaz,
+    dodatakDjeca,
+    dodatakInvaliditet,
+    dodatakARBiH,
+    dodatakMjesto,
+    dodatakOcjena,
+    ukupno,
+  };
+}
+
+function brojDana(od, doDatuma, praznici) {
   const start = new Date(od);
   const end = new Date(doDatuma);
-
-  const neradniDani = await prisma.neradniDan.findMany();
-
-  const praznici = neradniDani.map((d) =>
-    new Date(d.datum).toISOString().split("T")[0]
-  );
 
   let broj = 0;
 
@@ -109,7 +255,8 @@ async function brojDana(od, doDatuma) {
   while (trenutni <= end) {
     const danUSedmici = trenutni.getDay();
 
-    const datumString = trenutni.toISOString().split("T")[0];
+    const datumString =
+      trenutni.toISOString().split("T")[0];
 
     const vikend =
       danUSedmici === 0 ||
@@ -129,10 +276,6 @@ async function brojDana(od, doDatuma) {
 
   return broj;
 }
-
-app.get("/", (req, res) => {
-  res.send("Backend radi!");
-});
 
 app.get("/zaposlenici-javno", async (req, res) => {
   try {
@@ -407,7 +550,12 @@ app.get(
         },
       });
 
-      // Sortiranje po prezimenu
+      const neradniDani = await prisma.neradniDan.findMany();
+
+      const praznici = neradniDani.map((d) =>
+        new Date(d.datum).toISOString().split("T")[0]
+      );
+
       zaposlenici.sort((a, b) => {
         const prezimeA = a.ime.trim().split(" ").pop();
         const prezimeB = b.ime.trim().split(" ").pop();
@@ -419,40 +567,43 @@ app.get(
         zaposlenici.map(async (z) => {
           let iskoristeno = 0;
 
-          // Prethodni staž iz tabele RadniStaz
-let prethodniGodina = 0;
-let prethodniMjeseci = 0;
-let prethodniDani = 0;
+          // Prethodni staž
+          let prethodniGodina = 0;
+          let prethodniMjeseci = 0;
+          let prethodniDani = 0;
 
-for (const s of z.radniStazovi) {
-  const od = new Date(s.datumOd);
-  const doDatum = new Date(s.datumDo);
+          for (const s of z.radniStazovi) {
+            const od = new Date(s.datumOd);
+            const doDatum = new Date(s.datumDo);
 
-  let godine = doDatum.getFullYear() - od.getFullYear();
-  let mjeseci = doDatum.getMonth() - od.getMonth();
-  let dani = doDatum.getDate() - od.getDate();
+            let godine =
+              doDatum.getFullYear() - od.getFullYear();
+            let mjeseci =
+              doDatum.getMonth() - od.getMonth();
+            let dani =
+              doDatum.getDate() - od.getDate();
 
-  if (dani < 0) {
-    mjeseci--;
+            if (dani < 0) {
+              mjeseci--;
 
-    const zadnjiDan = new Date(
-      doDatum.getFullYear(),
-      doDatum.getMonth(),
-      0
-    ).getDate();
+              const zadnjiDan = new Date(
+                doDatum.getFullYear(),
+                doDatum.getMonth(),
+                0
+              ).getDate();
 
-    dani += zadnjiDan;
-  }
+              dani += zadnjiDan;
+            }
 
-  if (mjeseci < 0) {
-    godine--;
-    mjeseci += 12;
-  }
+            if (mjeseci < 0) {
+              godine--;
+              mjeseci += 12;
+            }
 
-  prethodniGodina += godine;
-  prethodniMjeseci += mjeseci;
-  prethodniDani += dani;
-}
+            prethodniGodina += godine;
+            prethodniMjeseci += mjeseci;
+            prethodniDani += dani;
+          }
 
           // Iskorišteni godišnji
           for (const o of z.odmori) {
@@ -460,67 +611,88 @@ for (const s of z.radniStazovi) {
               o.status === "odobreno" &&
               o.odbijaSeOdGodisnjeg
             ) {
-              iskoristeno += await brojDana(o.od, o.do);
+              iskoristeno += await brojDana(
+                o.od,
+                o.do,
+                praznici
+              );
             }
           }
 
- // Staž u MIZ
-let godineUMIZ = 0;
-let mjeseciUMIZ = 0;
-let daniUMIZ = 0;
+          // Staž u MIZ
+          let godineUMIZ = 0;
+          let mjeseciUMIZ = 0;
+          let daniUMIZ = 0;
 
-if (z.datumPocetka) {
-  const danas = new Date();
-  const pocetak = new Date(z.datumPocetka);
+          if (z.datumPocetka) {
+            const danas = new Date();
+            const pocetak = new Date(z.datumPocetka);
 
-  let godine = danas.getFullYear() - pocetak.getFullYear();
-  let mjeseci = danas.getMonth() - pocetak.getMonth();
-  let dani = danas.getDate() - pocetak.getDate();
+            let godine =
+              danas.getFullYear() -
+              pocetak.getFullYear();
 
-  if (dani < 0) {
-    mjeseci--;
+            let mjeseci =
+              danas.getMonth() -
+              pocetak.getMonth();
 
-    const zadnjiDanProslogMjeseca = new Date(
-      danas.getFullYear(),
-      danas.getMonth(),
-      0
-    ).getDate();
+            let dani =
+              danas.getDate() -
+              pocetak.getDate();
 
-    dani += zadnjiDanProslogMjeseca;
-  }
+            if (dani < 0) {
+              mjeseci--;
 
-  if (mjeseci < 0) {
-    godine--;
-    mjeseci += 12;
-  }
+              const zadnjiDanProslogMjeseca = new Date(
+                danas.getFullYear(),
+                danas.getMonth(),
+                0
+              ).getDate();
 
-  godineUMIZ = godine;
-  mjeseciUMIZ = mjeseci;
-  daniUMIZ = dani;
-}
+              dani += zadnjiDanProslogMjeseca;
+            }
 
-// Ukupan staž
-let ukupnoGodina = prethodniGodina + godineUMIZ;
-let ukupnoMjeseci = prethodniMjeseci + mjeseciUMIZ;
-let ukupnoDana = prethodniDani + daniUMIZ;
+            if (mjeseci < 0) {
+              godine--;
+              mjeseci += 12;
+            }
 
-while (ukupnoDana >= 30) {
-  ukupnoDana -= 30;
-  ukupnoMjeseci++;
-}
+            godineUMIZ = godine;
+            mjeseciUMIZ = mjeseci;
+            daniUMIZ = dani;
+          }
 
-while (ukupnoMjeseci >= 12) {
-  ukupnoMjeseci -= 12;
-  ukupnoGodina++;
-}
+          // Ukupan staž
+          let ukupnoGodina =
+            prethodniGodina + godineUMIZ;
 
-if (ukupnoMjeseci >= 12) {
-  ukupnoGodina += Math.floor(ukupnoMjeseci / 12);
-  ukupnoMjeseci = ukupnoMjeseci % 12;
-}
+          let ukupnoMjeseci =
+            prethodniMjeseci + mjeseciUMIZ;
 
-const ukupnoGO =
-  z.godisnji + (z.dodatniDani || 0);
+          let ukupnoDana =
+            prethodniDani + daniUMIZ;
+
+          while (ukupnoDana >= 30) {
+            ukupnoDana -= 30;
+            ukupnoMjeseci++;
+          }
+
+          while (ukupnoMjeseci >= 12) {
+            ukupnoMjeseci -= 12;
+            ukupnoGodina++;
+          }
+
+          if (ukupnoMjeseci >= 12) {
+            ukupnoGodina += Math.floor(
+              ukupnoMjeseci / 12
+            );
+            ukupnoMjeseci =
+              ukupnoMjeseci % 12;
+          }
+
+          const ukupnoGO =
+            z.godisnji +
+            (z.dodatniDani || 0);
 
           return {
             ...z,
@@ -528,7 +700,8 @@ const ukupnoGO =
             ukupnoMjeseci,
             ukupnoDana,
             iskoristeno,
-            preostalo: ukupnoGO - iskoristeno,
+            preostalo:
+              ukupnoGO - iskoristeno,
           };
         })
       );
@@ -537,7 +710,194 @@ const ukupnoGO =
     } catch (error) {
       console.error(error);
       res.status(500).json({
-        error: "Greška kod učitavanja zaposlenika",
+        error:
+          "Greška kod učitavanja zaposlenika",
+      });
+    }
+  }
+);
+app.get(
+  "/zaposlenici/:id",
+  provjeriToken,
+  samoAdmin,
+  async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+
+      const zaposlenik = await prisma.zaposlenik.findUnique({
+        where: { id },
+        include: {
+          odmori: true,
+          radniStazovi: true,
+        },
+      });
+
+      if (!zaposlenik) {
+        return res.status(404).json({
+          error: "Zaposlenik nije pronađen",
+        });
+      }
+
+      const neradniDani =
+        await prisma.neradniDan.findMany();
+
+      const praznici = neradniDani.map((d) =>
+        new Date(d.datum).toISOString().split("T")[0]
+      );
+
+      let iskoristeno = 0;
+
+      // Prethodni staž
+      let prethodniGodina = 0;
+      let prethodniMjeseci = 0;
+      let prethodniDani = 0;
+
+      for (const s of zaposlenik.radniStazovi) {
+        const od = new Date(s.datumOd);
+        const doDatum = new Date(s.datumDo);
+
+        let godine =
+          doDatum.getFullYear() - od.getFullYear();
+        let mjeseci =
+          doDatum.getMonth() - od.getMonth();
+        let dani =
+          doDatum.getDate() - od.getDate();
+
+        if (dani < 0) {
+          mjeseci--;
+
+          const zadnjiDan = new Date(
+            doDatum.getFullYear(),
+            doDatum.getMonth(),
+            0
+          ).getDate();
+
+          dani += zadnjiDan;
+        }
+
+        if (mjeseci < 0) {
+          godine--;
+          mjeseci += 12;
+        }
+
+        prethodniGodina += godine;
+        prethodniMjeseci += mjeseci;
+        prethodniDani += dani;
+      }
+
+      // Iskorišteni godišnji
+      for (const o of zaposlenik.odmori) {
+        if (
+          o.status === "odobreno" &&
+          o.odbijaSeOdGodisnjeg
+        ) {
+          iskoristeno += await brojDana(
+            o.od,
+            o.do,
+            praznici
+          );
+        }
+      }
+
+      // Staž u MIZ
+      let godineUMIZ = 0;
+      let mjeseciUMIZ = 0;
+      let daniUMIZ = 0;
+
+      if (zaposlenik.datumPocetka) {
+        const danas = new Date();
+        const pocetak = new Date(
+          zaposlenik.datumPocetka
+        );
+
+        let godine =
+          danas.getFullYear() -
+          pocetak.getFullYear();
+
+        let mjeseci =
+          danas.getMonth() -
+          pocetak.getMonth();
+
+        let dani =
+          danas.getDate() -
+          pocetak.getDate();
+
+        if (dani < 0) {
+          mjeseci--;
+
+          const zadnjiDanProslogMjeseca =
+            new Date(
+              danas.getFullYear(),
+              danas.getMonth(),
+              0
+            ).getDate();
+
+          dani += zadnjiDanProslogMjeseca;
+        }
+
+        if (mjeseci < 0) {
+          godine--;
+          mjeseci += 12;
+        }
+
+        godineUMIZ = godine;
+        mjeseciUMIZ = mjeseci;
+        daniUMIZ = dani;
+      }
+
+      // Ukupan staž
+      let ukupnoGodina =
+        prethodniGodina + godineUMIZ;
+
+      let ukupnoMjeseci =
+        prethodniMjeseci + mjeseciUMIZ;
+
+      let ukupnoDana =
+        prethodniDani + daniUMIZ;
+
+      while (ukupnoDana >= 30) {
+        ukupnoDana -= 30;
+        ukupnoMjeseci++;
+      }
+
+      while (ukupnoMjeseci >= 12) {
+        ukupnoMjeseci -= 12;
+        ukupnoGodina++;
+      }
+
+      const ukupnoGO =
+        zaposlenik.godisnji +
+        (zaposlenik.dodatniDani || 0);
+
+        const obracun = izracunajGodisnjiPoPravilniku({
+  ...zaposlenik,
+  godineUMIZ,
+});
+
+      res.json({
+        ...zaposlenik,
+
+        prethodniGodina,
+        prethodniMjeseci,
+        prethodniDani,
+
+        godineUMIZ,
+        mjeseciUMIZ,
+        daniUMIZ,
+
+        ukupnoGodina,
+        ukupnoMjeseci,
+        ukupnoDana,
+
+        obracun,
+
+        iskoristeno,
+        preostalo: ukupnoGO - iskoristeno,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        error: "Greška kod učitavanja kartona zaposlenika",
       });
     }
   }
@@ -591,14 +951,21 @@ app.put(
     try {
       const { id } = req.params;
 
-      const {
-        ime,
-        pozicija,
-        datumPocetka,
-        prethodniStazGodina,
-        prethodniStazMjeseci,
-        dodatniDani,
-      } = req.body;
+const {
+  ime,
+  pozicija,
+  datumPocetka,
+  prethodniStazGodina,
+  prethodniStazMjeseci,
+  dodatniDani,
+
+  brojDjeceU15,
+  invaliditet,
+  mjeseciARBiH,
+  nivoSluzbenickogMjesta,
+  ocjenaRezultata,
+  samohraniRoditelj,
+} = req.body;
 
       const godisnji = izracunajGodisnji(
         datumPocetka,
@@ -625,6 +992,22 @@ app.put(
           dodatniDani:
             Number(dodatniDani) || 0,
 
+            brojDjeceU15:
+  Number(brojDjeceU15) || 0,
+
+invaliditet:
+  Boolean(invaliditet),
+
+mjeseciARBiH:
+  Number(mjeseciARBiH) || 0,
+
+nivoSluzbenickogMjesta,
+
+ocjenaRezultata,
+
+samohraniRoditelj:
+  Boolean(samohraniRoditelj),
+
           godisnji,
         },
       });
@@ -634,6 +1017,68 @@ app.put(
       console.error(error);
       res.status(500).json({
         error: "Greška kod izmjene zaposlenika",
+      });
+    }
+  }
+);
+
+app.put(
+  "/zaposlenici/:id/kriteriji",
+  provjeriToken,
+  samoAdmin,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const {
+        brojDjeceU15,
+        samohraniRoditelj,
+        invaliditet,
+        mjeseciARBiH,
+        nivoSluzbenickogMjesta,
+        ocjenaRezultata,
+      } = req.body;
+
+const stari = await prisma.zaposlenik.findUnique({
+  where: {
+    id: Number(id),
+  },
+});
+
+const podaci = {
+  ...stari,
+  brojDjeceU15: Number(brojDjeceU15 || 0),
+  samohraniRoditelj: Boolean(samohraniRoditelj),
+  invaliditet: Boolean(invaliditet),
+  mjeseciARBiH: Number(mjeseciARBiH || 0),
+  nivoSluzbenickogMjesta:
+    nivoSluzbenickogMjesta || "ostalo",
+  ocjenaRezultata:
+    ocjenaRezultata || "bez",
+};
+
+const obracun = izracunajGodisnjiPoPravilniku(podaci);
+
+const zaposlenik = await prisma.zaposlenik.update({
+  where: {
+    id: Number(id),
+  },
+  data: {
+    brojDjeceU15: podaci.brojDjeceU15,
+    samohraniRoditelj: podaci.samohraniRoditelj,
+    invaliditet: podaci.invaliditet,
+    mjeseciARBiH: podaci.mjeseciARBiH,
+    nivoSluzbenickogMjesta: podaci.nivoSluzbenickogMjesta,
+    ocjenaRezultata: podaci.ocjenaRezultata,
+    godisnji: obracun.ukupno,
+  },
+});
+
+      res.json(zaposlenik);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({
+        greska: "Greška prilikom spremanja kriterija GO.",
       });
     }
   }

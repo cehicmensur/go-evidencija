@@ -8,44 +8,32 @@ datasource db {
 }
 
 model Zaposlenik {
-  id Int @id @default(autoincrement())
-
-  ime      String
-  pozicija String
-
-  datumPocetka DateTime?
-
-  godisnji Int
-
-  prethodniStazGodina  Int @default(0)
-  prethodniStazMjeseci Int @default(0)
-
-  dodatniDani Int @default(0)
-
-brojDjeceU15          Int      @default(0)
-samohraniRoditelj     Boolean  @default(false)
-invaliditet           Boolean  @default(false)
-
-nivoSluzbenickogMjesta String  @default("ostalo")
-ocjenaRezultata        String  @default("bez")
-
-mjeseciARBiH          Int      @default(0)
-
-  odmori   GodisnjiOdmor[]
-  korisnik Korisnik?
-
-  radniStazovi RadniStaz[]
-  obracuni GodisnjiObracun[]
+  id                     Int             @id @default(autoincrement())
+  ime                    String
+  pozicija               String
+  godisnji               Int
+  dodatniDani            Int             @default(0)
+  prethodniStazGodina    Int             @default(0)
+  prethodniStazMjeseci   Int             @default(0)
+  datumPocetka           DateTime?
+  brojDjeceU15           Int             @default(0)
+  invaliditet            Boolean         @default(false)
+  mjeseciARBiH           Int             @default(0)
+  nivoSluzbenickogMjesta String          @default("ostalo")
+  ocjenaRezultata        String          @default("bez")
+  samohraniRoditelj      Boolean         @default(false)
+  odmori                 GodisnjiOdmor[]
+  korisnik               Korisnik?
+  radniStazovi           RadniStaz[]
 }
 
 model RadniStaz {
-  id           Int      @id @default(autoincrement())
+  id           Int        @id @default(autoincrement())
   zaposlenikId Int
   poslodavac   String
   datumOd      DateTime
   datumDo      DateTime
-
-  zaposlenik Zaposlenik @relation(fields: [zaposlenikId], references: [id])
+  zaposlenik   Zaposlenik @relation(fields: [zaposlenikId], references: [id])
 }
 
 model GodisnjiOdmor {
@@ -89,33 +77,4 @@ model AuditLog {
   akcija    String
   detalji   String?
   createdAt DateTime @default(now())
-}
-
-model GodisnjiObracun {
-  id Int @id @default(autoincrement())
-
-  godina Int
-
-  zaposlenikId Int
-  zaposlenik Zaposlenik @relation(fields: [zaposlenikId], references: [id])
-
-  osnovica Int @default(20)
-
-  dodatakStaz Int @default(0)
-  dodatakDjeca Int @default(0)
-  dodatakRadnoMjesto Int @default(0)
-  dodatakRezultatRada Int @default(0)
-  dodatakARBiH Int @default(0)
-
-  ukupnoDana Int
-
-  brojDjeceU15 Int @default(0)
-  samohraniRoditelj Boolean @default(false)
-  invaliditet Boolean @default(false)
-
-  nivoSluzbenickogMjesta String
-  ocjenaRezultata String
-  mjeseciARBiH Int @default(0)
-
-  datumObracuna DateTime @default(now())
 }
