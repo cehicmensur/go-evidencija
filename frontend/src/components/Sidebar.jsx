@@ -91,6 +91,15 @@ Radni staž
 </Link>
 )}
 
+{korisnik?.uloga === "admin" && (
+  <Link
+    to="/obracun-go"
+    className="hover:text-slate-300"
+  >
+    Obračun GO
+  </Link>
+)}
+
           {korisnik?.uloga === "admin" && (
             <Link
               to="/korisnici"

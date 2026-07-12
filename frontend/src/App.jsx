@@ -10,6 +10,7 @@ import DokumentOdsustva from "./pages/DokumentOdsustva";
 import Kalendar from "./pages/Kalendar";
 import NeradniDani from "./pages/NeradniDani";
 import RadniStaz from "./pages/RadniStaz";
+import ObracunGO from "./pages/ObracunGO";
 import Sidebar from "./components/Sidebar";
 
 
@@ -65,7 +66,16 @@ function App() {
     )
   }
 />
-
+<Route
+  path="/obracun-go"
+  element={
+    korisnik?.uloga === "admin" ? (
+      <ObracunGO />
+    ) : (
+      <Navigate to="/godisnji" />
+    )
+  }
+/>
             <Route
               path="/korisnici"
               element={
