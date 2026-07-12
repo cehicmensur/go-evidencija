@@ -1549,6 +1549,135 @@ app.delete(
 }
   }
 );
+app.post(
+  "/obracun-go/:godina",
+  provjeriToken,
+  samoAdmin,
+  async (req, res) => {
+    try {
+      const godina = Number(req.params.godina);
+
+      const zaposlenici =
+        await prisma.zaposlenik.findMany({
+          include: {
+            radniStazovi: true,
+          },
+        });
+
+      let obracuni = [];
+
+      for (const z of zaposlenici) {
+        const brojDanaGO =
+          izracunajGodisnji(
+            z.datumPocetka,
+            z.prethodniStazGodina,
+            z.prethodniStazMjeseci,
+            z
+          );
+
+        const postoji =
+          await prisma.obracunGO.findFirst({
+            where: {
+              zaposlenikId: z.id,
+              godina,
+            },
+          });
+
+        if (postoji) {
+          await prisma.obracunGO.update({
+            where: {
+              id: postoji.id,
+            },
+            data: {
+              brojDanaGO,
+              datumObracuna: new Date(),
+            },
+          });
+
+obracuni.push({
+  zaposlenikId: z.id,
+  zaposlenik: z.ime,
+  godina,
+  brojDanaGO,
+  datumObracuna: new Date(),
+});
+        } else {
+          await prisma.obracunGO.create({
+            data: {
+              zaposlenikId: z.id,
+              godina,
+              brojDanaGO,
+            },
+          });
+
+obracuni.push({
+  zaposlenikId: z.id,
+  zaposlenik: z.ime,
+  godina,
+  brojDanaGO,
+  datumObracuna: new Date(),
+});
+        }
+      }
+
+      res.json({
+        godina,
+        ukupno: obracuni.length,
+        obracuni,
+      });
+    } catch (error) {
+      console.error(error);
+
+      res.status(500).json({
+        error: "Greška kod obračuna GO.",
+      });
+    }
+  }
+);
+
+app.get(
+  "/obracun-go/:godina",
+  provjeriToken,
+  samoAdmin,
+  async (req, res) => {
+    try {
+      const godina = Number(req.params.godina);
+
+      const obracuni = await prisma.obracunGO.findMany({
+        where: { godina },
+        include: {
+          zaposlenik: {
+            select: {
+              ime: true,
+            },
+          },
+        },
+        orderBy: {
+          zaposlenik: {
+            ime: "asc",
+          },
+        },
+      });
+
+      res.json(
+        obracuni.map((o) => ({
+          zaposlenikId: o.zaposlenikId,
+          zaposlenik: o.zaposlenik.ime,
+          godina: o.godina,
+          brojDanaGO: o.brojDanaGO,
+          datumObracuna: o.datumObracuna,
+        }))
+      );
+    } catch (error) {
+      console.error(error);
+
+      res.status(500).json({
+        error: "Greška kod učitavanja obračuna.",
+      });
+    }
+  }
+);
+
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {

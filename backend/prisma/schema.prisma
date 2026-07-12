@@ -25,6 +25,7 @@ model Zaposlenik {
   odmori                 GodisnjiOdmor[]
   korisnik               Korisnik?
   radniStazovi           RadniStaz[]
+  obracuniGO ObracunGO[]
 }
 
 model RadniStaz {
@@ -77,4 +78,19 @@ model AuditLog {
   akcija    String
   detalji   String?
   createdAt DateTime @default(now())
+}
+
+model ObracunGO {
+  id             Int        @id @default(autoincrement())
+
+  zaposlenikId   Int
+  zaposlenik     Zaposlenik @relation(fields: [zaposlenikId], references: [id], onDelete: Cascade)
+
+  godina         Int
+
+  brojDanaGO     Int
+
+  datumObracuna  DateTime   @default(now())
+
+  @@unique([zaposlenikId, godina])
 }
