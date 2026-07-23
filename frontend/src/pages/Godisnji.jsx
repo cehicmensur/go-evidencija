@@ -142,7 +142,7 @@ function Godisnji() {
     }).then(() => ucitajZahtjeve());
   };
 
- const otvoriDokument = async (odsustvo, tip) => {
+const otvoriDokument = async (odsustvo, tip) => { 
   try {
     const res = await fetch(
       `${API_URL}/neradni-dani`,

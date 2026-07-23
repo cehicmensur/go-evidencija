@@ -9,7 +9,6 @@ import Korisnici from "./pages/Korisnici";
 import DokumentOdsustva from "./pages/DokumentOdsustva";
 import Kalendar from "./pages/Kalendar";
 import NeradniDani from "./pages/NeradniDani";
-import RadniStaz from "./pages/RadniStaz";
 import ObracunGO from "./pages/ObracunGO";
 import Sidebar from "./components/Sidebar";
 
@@ -56,16 +55,6 @@ function App() {
   element={<KartonZaposlenika />}
 />
 
-<Route
-  path="/radni-staz"
-  element={
-    korisnik?.uloga === "admin" ? (
-      <RadniStaz />
-    ) : (
-      <Navigate to="/godisnji" />
-    )
-  }
-/>
 <Route
   path="/obracun-go"
   element={

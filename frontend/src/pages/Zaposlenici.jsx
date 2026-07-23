@@ -314,18 +314,17 @@ function Zaposlenici() {
   {z.ukupnoDana || 0} d.
 </td>
 
-                  <td className="p-3">
-{z.godisnji} 
-                  </td>
+<td className="p-3">
+  {z.obracun?.ukupno ?? z.ukupnoGO ?? z.godisnji ?? 0}
+</td>
 
                   <td className="p-3">
                     {z.iskoristeno ?? 0}
                   </td>
 
-                  <td className="p-3">
-                    {z.preostalo ??
-                      z.godisnji}
-                  </td>
+<td className="p-3">
+  {z.preostalo ?? (z.obracun?.ukupno ?? z.ukupnoGO ?? 0)}
+</td>
 
 <td className="p-3 flex gap-2">
   <button

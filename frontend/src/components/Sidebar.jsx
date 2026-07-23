@@ -82,15 +82,6 @@ function Sidebar() {
             </Link>
           )}
 
-          {korisnik?.uloga === "admin" && (
-<Link
-  to="/radni-staz"
-  className="hover:text-slate-300 text-red-400"
->
-Radni staž
-</Link>
-)}
-
 {korisnik?.uloga === "admin" && (
   <Link
     to="/obracun-go"

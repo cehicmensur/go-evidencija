@@ -5,6 +5,7 @@ const tabovi = [
   { id: "go", naziv: "GO" },
 { id: "kriteriji", naziv: "Obračun GO" },
   { id: "historija", naziv: "Historija" },
+  { id: "dokumenti", naziv: "Dokumenti" },
 ];
 
   return (

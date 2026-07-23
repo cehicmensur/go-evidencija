@@ -12,7 +12,7 @@ function StatistikaKartona({ zaposlenik }) {
       <div className="bg-white rounded-xl shadow p-6">
         <p className="text-gray-500 text-sm">Godišnji odmor</p>
         <p className="text-3xl font-bold mt-2">
-          {zaposlenik.godisnji + (zaposlenik.dodatniDani || 0)}
+{zaposlenik.obracunGO?.brojDanaGO ?? 0}
         </p>
       </div>
 

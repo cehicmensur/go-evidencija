@@ -56,12 +56,16 @@ useEffect(() => {
         }
       );
 
-      const data = await res.json();
+console.log("STATUS:", res.status);
 
-      if (data.error) {
-        alert(data.error);
-        return;
-      }
+const data = await res.json();
+
+console.log("ODGOVOR:", data);
+
+if (!res.ok) {
+  alert(data.error || "Greška");
+  return;
+}
 
 await ucitajObracune();
     } catch (err) {
