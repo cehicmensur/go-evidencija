@@ -23,6 +23,7 @@ model Zaposlenik {
   ocjenaRezultata        String          @default("bez")
   samohraniRoditelj      Boolean         @default(false)
   odmori                 GodisnjiOdmor[]
+  dokumenti Dokument[]
   korisnik               Korisnik?
   radniStazovi           RadniStaz[]
   obracuniGO ObracunGO[]
@@ -35,6 +36,22 @@ model RadniStaz {
   datumOd      DateTime
   datumDo      DateTime
   zaposlenik   Zaposlenik @relation(fields: [zaposlenikId], references: [id])
+}
+model Dokument {
+  id            Int          @id @default(autoincrement())
+
+  zaposlenikId  Int
+  zaposlenik    Zaposlenik   @relation(fields: [zaposlenikId], references: [id], onDelete: Cascade)
+
+  naziv         String
+  vrsta         String
+  opis          String?
+
+  datum         DateTime
+
+  datoteka      String
+
+  createdAt     DateTime     @default(now())
 }
 
 model GodisnjiOdmor {
